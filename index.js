@@ -78,7 +78,7 @@ function MemberAuth(req, res, next) {
 function AdminAuth(req, res, next) {
     if (req.cookies.login_token) {
         jwt.verify(req.cookies.login_token, jwtsecret, (err, user) => {
-            if (err || user.isadmin == false) {
+            if (err || !user.isadmin === true) {
                 return res.sendStatus(403)
             } else {
                 next()

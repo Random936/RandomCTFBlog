@@ -1,0 +1,17 @@
+<html>
+    <head>
+        <title>Sign Up</title>
+    </head>
+    <body>
+        <div>
+            <h2>Sign Up</h2>
+            <form action="/signup" method="POST">
+                <input name="username" type="text" placeholder="Username"><br>
+                <input name="password" type="password" placeholder="Password"><br>
+                <input name="confpass" type="password" placeholder="Confirm Password"><br>
+                <input type="submit" value="Sign Up">
+            </form>
+            <p><%= loginmessage %></p>
+        </div>
+    </body>
+</html>

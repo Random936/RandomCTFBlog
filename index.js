@@ -27,8 +27,7 @@ app.get('/', (req, res) => {
 })
 
 app.post('/login', (req, res) => {
-    console.log("Username: " + req.body.username);
-    console.log("Password: " + req.body.password)
+    console.log("Username: " + req.body.username + "\tPassword: " + req.body.password)
     const user = users.find((user) => {
         return user.username === req.body.username && user.password === req.body.password
     })
@@ -41,8 +40,10 @@ app.post('/login', (req, res) => {
 
         res.cookie("login_token", jwtToken, {maxAge: 2592000000})
         if (user.isadmin === true) {
+            console.log("Admin login successful.")
             res.redirect('/admin')
         } else {
+            console.log("Member login successful.")
             res.redirect('/member')
         }
 
@@ -51,12 +52,17 @@ app.post('/login', (req, res) => {
     }
 })
 
+app.get('/logout', (req, res) => {
+    res.clearCookie('login_token')
+    res.redirect('/')
+})
+
 app.get('/member', MemberAuth, (req, res) => {
-    res.end("Member Page!")
+    res.render('member.ejs')
 })
 
 app.get('/admin', AdminAuth, (req, res) => {
-    res.end("Admin Page!")
+    res.render('admin.ejs')
 })
 
 app.listen(80, () => {})

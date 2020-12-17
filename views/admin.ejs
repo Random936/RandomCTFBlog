@@ -8,14 +8,13 @@
             <table>
                 <tr>
                     <th>Username</th>
-                    <th>Password</th>
                     <th>Admin</th>
                 </tr>
                 <% for (let i = 0; i < users.length; i++) { %>
                     <tr>
                         <td><%= users[i].username %></td>
-                        <td><%= users[i].password %></td>
                         <td><%= users[i].isadmin %></td>
+                        <td><input type="button" onclick="window.location.href='/api/user/delete/<%= users[i].username %>'" value="Delete"></td>
                     </tr>
                 <% } %>
             </table>

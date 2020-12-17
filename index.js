@@ -10,17 +10,22 @@ const db = new Datastore({ filename: 'database.db', autoload: true })
 const jwtsecret = "q3HKVf5TG2ez4KSeBlPXWRWQca3B5FNrPF0BHGPF"
 
 app.use(cookieParser())
-app.use(bodyParser.urlencoded({extended: true}))
+app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 app.set('view engine', 'ejs')
 
 app.get('/', (req, res) => {
-    res.render('index.ejs')
+    res.render('index.ejs', { loginmessage: "" })
 })
 
 app.post('/login', (req, res) => {
     
     console.log("Username: " + req.body.username + "\tPassword: " + req.body.password)
+
+    if (typeof req.body.username !== "string" || typeof req.body.password !== "string") {
+        console.log("WARNING: NoSQL injection attempt detected! " + req.socket.address)
+        return res.render('index.ejs', { loginmessage: "An unknown error occured." })
+    }
 
     db.findOne({ 
         username: req.body.username, 
@@ -46,7 +51,7 @@ app.post('/login', (req, res) => {
             }
     
         } else {
-            res.redirect('/')
+            res.render('index.ejs', { loginmessage: "Invalid username or password." })
         }
 
     })
@@ -59,19 +64,29 @@ app.get('/logout', (req, res) => {
 })
 
 app.get('/signup', (req, res) => {
-    res.render('signup.ejs', { loginmessage: "" })
+    res.render('signup.ejs', { signupmessage: "" })
 })
 
 app.post('/signup', (req, res) => {
 
+    if (typeof req.body.username !== "string" || typeof req.body.password !== "string") {
+        console.log("WARNING: NoSQL injection attempt detected! " + req.socket.address)
+        return res.render('signup.ejs', { signupmessage: "An unknown error occured."})
+    }
+    
     if (req.body.password !== req.body.confpass) {
-        res.render('signup.ejs', { loginmessage: "Passwords did not match."})
+        return res.render('signup.ejs', { signupmessage: "Passwords did not match."})
+    }
+
+    const username = req.body.username.match(/[a-zA-Z0-9]+/)[0]
+    if (username !== req.body.username) {
+        return res.render('signup.ejs', { signupmessage: "Username is not allowed."})
     }
 
     db.findOne({username: req.body.username}, (err, user) => {
         if (err || user) {
-            res.render('signup.ejs', { 
-                loginmessage: "A user with that username already exists."
+            return res.render('signup.ejs', { 
+                signupmessage: "A user with that username already exists."
             })
         }
 
@@ -81,17 +96,18 @@ app.post('/signup', (req, res) => {
             isadmin: false
         },(err) => {
             if (err) {
-                res.render('signup.ejs', { 
-                    loginmessage: "An error occured when creating the user."
+                return res.render('signup.ejs', { 
+                    signupmessage: "An error occured when creating the user."
                 })
             }
+
+            console.log("Successfully created user." + 
+            "\tUsername: " + req.body.username +
+            "\tPassword: " + req.body.password)
+            res.redirect('/')
+
         })
 
-        console.log("Successfully created user." + 
-        "\nUsername: " + req.body.username +
-        "\nPassword: " + req.body.password)
-        res.redirect('/')
-        
     })
 
 })

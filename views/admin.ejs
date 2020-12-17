@@ -9,12 +9,15 @@
                 <tr>
                     <th>Username</th>
                     <th>Admin</th>
+                    <th>Change Role</th>
+                    <th>Delete User</th>
                 </tr>
                 <% for (let i = 0; i < users.length; i++) { %>
                     <tr>
                         <td><%= users[i].username %></td>
                         <td><%= users[i].isadmin %></td>
-                        <td><input type="button" onclick="window.location.href='/api/user/delete/<%= users[i].username %>'" value="Delete"></td>
+                        <td><a href="/users/changerole/<%= users[i].username %>">Change Role</a></td>
+                        <td><a href="/users/delete/<%= users[i].username %>">Delete</a></td>
                     </tr>
                 <% } %>
             </table>

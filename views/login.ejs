@@ -1,0 +1,17 @@
+<html>
+    <head>
+        <title>Login</title>
+    </head>
+    <body>
+        <div>
+            <h2>Login</h2>
+            <form action="login" method="POST">
+                <input name="username" type="text" placeholder="Username"><br>
+                <input name="password" type="password" placeholder="Password"><br>
+                <input type="submit" value="Login">
+            </form>
+            <p><%= loginmessage %></p>
+            <a href="/signup">Sign Up</a>
+        </div>
+    </body>
+</html>

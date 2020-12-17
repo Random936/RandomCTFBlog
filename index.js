@@ -15,16 +15,20 @@ app.use(bodyParser.json())
 app.set('view engine', 'ejs')
 
 app.get('/', (req, res) => {
-    res.render('index.ejs', { loginmessage: "" })
+    res.render('index.ejs')
+})
+
+app.get('/login', (req, res) => {
+    res.render('login.ejs', { loginmessage: "" })
 })
 
 app.post('/login', (req, res) => {
     
-    console.log("Username: " + req.body.username + "\tPassword: " + req.body.password)
+    console.log("Login attempt with username: " + req.body.username + " and password: " + req.body.password)
 
     if (typeof req.body.username !== "string" || typeof req.body.password !== "string") {
         console.log("WARNING: NoSQL injection attempt detected! " + req.socket.address)
-        return res.render('index.ejs', { loginmessage: "An unknown error occured." })
+        return res.render('login.ejs', { loginmessage: "An unknown error occured." })
     }
 
     db.findOne({ 
@@ -51,7 +55,7 @@ app.post('/login', (req, res) => {
             }
     
         } else {
-            res.render('index.ejs', { loginmessage: "Invalid username or password." })
+            res.render('login.ejs', { loginmessage: "Invalid username or password." })
         }
 
     })
@@ -60,7 +64,7 @@ app.post('/login', (req, res) => {
 
 app.get('/logout', (req, res) => {
     res.clearCookie('login_token')
-    res.redirect('/')
+    res.redirect('/login')
 })
 
 app.get('/signup', (req, res) => {
@@ -104,7 +108,7 @@ app.post('/signup', (req, res) => {
             console.log("Successfully created user." + 
             "\tUsername: " + req.body.username +
             "\tPassword: " + req.body.password)
-            res.redirect('/')
+            res.redirect('/login')
 
         })
 
@@ -123,42 +127,103 @@ app.get('/admin', AdminAuth, (req, res) => {
     })
 })
 
+app.get('/users/delete/:username', (req, res) => {
+
+    if (typeof req.params.username !== "string") {
+        if (res.header.referrer == undefined) {
+            return res.redirect('/')
+        } else {
+            return res.redirect(req.header.referrer)
+        }
+    }
+
+    jwt.verify(req.cookies.login_token, jwtsecret, (err, user) => {
+        if (user.isadmin === true || user.username === req.params.username) {
+            db.remove({ username: req.params.username }, {}, (err) => {
+                if (err) {return res.redirect('/')}
+                if (user.username === req.params.username) {
+                    res.redirect('/logout')
+                }
+                console.log("Removed user: ", req.params.username)
+            })
+        }
+    })
+
+})
+
+app.get('/users/changerole/:username', AdminAuth, (req, res) => {
+    
+    if (typeof req.params.username !== "string") {
+        if (res.header.referrer == undefined) {
+            return res.redirect('/')
+        } else {
+            return res.redirect(req.header.referrer)
+        }
+    }
+
+    db.findOne({ username: req.params.username }, (err, user) => {
+        if (err) {return res.redirect('/admin')}
+        if (user.isadmin === false) {
+
+            db.update(user, { 
+                username: user.username, 
+                password: user.password,
+                isadmin: true
+            }, {}, (err) => {
+                if (err) {return res.redirect('/admin')}
+                console.log("Changed " + user.username + "'s role to admin.")
+            })
+
+            return res.redirect('/admin')
+
+        } else {
+
+            db.update(user, { 
+                username: user.username, 
+                password: user.password,
+                isadmin: false 
+            }, {}, (err) => {
+                if (err) {return res.redirect('/admin')}
+                console.log("Changed " + user.username + "'s role to member.")
+            })
+
+            return res.redirect('/admin')
+            
+        }
+    })
+
+})
+
 app.listen(80, () => {console.log("Now listening for incoming connections.")})
 
 function MemberAuth(req, res, next) {
 
     if (req.cookies.login_token) {
-
         jwt.verify(req.cookies.login_token, jwtsecret, (err) => {
-
             if (err) {
                 return res.sendStatus(403)
             } else {
                 next()
             }
-
         })
-
     } else {
         return res.sendStatus(401)
     }
+
 }
 
 function AdminAuth(req, res, next) {
 
     if (req.cookies.login_token) {
-
         jwt.verify(req.cookies.login_token, jwtsecret, (err, user) => {
-
             if (err || !user.isadmin === true) {
                 return res.sendStatus(403)
             } else {
                 next()
             }
-
         })
-
     } else {
         return res.sendStatus(401)
     }
+
 }

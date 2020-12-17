@@ -3,7 +3,7 @@
         <title>Administration</title>
     </head>
     <body>
-        <h3>Admin Page!</h3>
+        <h1>Admin Page!</h1>
         <div>
             <table>
                 <tr>
@@ -21,6 +21,14 @@
                     </tr>
                 <% } %>
             </table>
+        </div>
+        <div>
+            <h3>Create Post</h3>
+            <form action="/posts/create" method="POST">
+                <input type="text" name="postname"><br>
+                <textarea name="postcontent" rows="6" cols="60"></textarea><br>
+                <input type="submit">
+            </form>
         </div>
         <div>
             <form action="/logout">

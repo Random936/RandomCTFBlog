@@ -1,17 +1,19 @@
 <html>
     <head>
         <title>RandomCTF</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.6.1/dist/css/uikit.min.css">
+        <link rel="stylesheet" href="style.css">
     </head>
     <body>
-        <div>
-            <a href="/login">Login</a>
-            <a href="/signup">Sign Up</a>
-            <a href="/admin">Admin Page</a>
-            <a href="/member">Member Page</a>    
+        <div class="uk-position-top-center">
+            <a class="uk-button" href="/login">Login</a>
+            <a class="uk-button" href="/signup">Sign Up</a>
+            <a class="uk-button" href="/admin">Admin Page</a>
+            <a class="uk-button" href="/member">Member Page</a>    
         </div>
         <div>
             <% posts.forEach((post) => { %>
-            <a href="/posts/load/<%= post._id %>"><%= post.name %></a><br>
+            <a class="uk-button-text" href="/posts/load/<%= post._id %>"><%= post.name %></a><br>
             <% }) %>
         </div>
     </body>

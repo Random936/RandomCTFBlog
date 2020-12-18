@@ -12,6 +12,7 @@ db.posts = new Datastore({ filename: 'posts.db', autoload: true })
 // Change before production!
 const jwtsecret = "q3HKVf5TG2ez4KSeBlPXWRWQca3B5FNrPF0BHGPF"
 
+app.use(express.static('static'))
 app.use(cookieParser())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())

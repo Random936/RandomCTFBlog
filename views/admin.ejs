@@ -1,11 +1,13 @@
 <html>
     <head>
         <title>Administration</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.6.1/dist/css/uikit.min.css">
     </head>
     <body>
         <h1>Admin Page!</h1>
         <div>
-            <table>
+            <h3>User Management</h3>
+            <table class="uk-table uk-table-divider">
                 <tr>
                     <th>Username</th>
                     <th>Admin</th>
@@ -15,15 +17,16 @@
                 <% users.forEach((user) => { %>
                     <tr>
                         <td><%= user.username %></td>
-                        <td><%= users.isadmin %></td>
-                        <td><a href="/users/changerole/<%= user.username %>">Change Role</a></td>
-                        <td><a href="/users/delete/<%= user.username %>">Delete</a></td>
+                        <td><%= user.isadmin %></td>
+                        <td><a class="uk-button-text" href="/users/changerole/<%= user.username %>">Change Role</a></td>
+                        <td><a class="uk-button-text" href="/users/delete/<%= user.username %>">Delete</a></td>
                     </tr>
                 <% }) %>
             </table>
         </div>
         <div>
-            <table>
+            <h3>Blog Management</h3>
+            <table class="uk-table uk-table-divider">
                 <tr>
                     <th>Title</th>
                     <th>Length</th>
@@ -32,10 +35,10 @@
                 </tr>
                 <% posts.forEach((post) => { %>
                     <tr>
-                        <td><a href="/posts/load/<%= post._id %>"><%= post.name %></a></td>
+                        <td><a class="uk-button-text" href="/posts/load/<%= post._id %>"><%= post.name %></a></td>
                         <td><%= post.content.length %></td>
-                        <td><a href="/posts/edit/<%= post._id %>">Edit</a></td>
-                        <td><a href="/posts/delete/<%= post._id %>">Delete</a></td>
+                        <td><a class="uk-button-text" href="/posts/edit/<%= post._id %>">Edit</a></td>
+                        <td><a class="uk-button-text" href="/posts/delete/<%= post._id %>">Delete</a></td>
                     </tr>
                 <% }) %>
             </table>
@@ -49,7 +52,7 @@
             </form>
         </div>
         <div>
-            <a href="/logout">Logout</a>
+            <a class="uk-button" href="/logout">Logout</a>
         </div>
     </body>
 </html>

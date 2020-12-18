@@ -1,0 +1,13 @@
+<html>
+    <head>
+        <title>Edit: <%= post.name %></title>
+    </head>
+    <body>
+        <h2>Edit: <%= post.name %></h2>
+        <form action="/posts/edit/<%= post._id %>" method="POST">
+            <input type="text" name="name" value="<%= post.name %>"><br>
+            <textarea name="content" rows="6" cols="60"><%= post.content %></textarea><br>
+            <input type="submit" value="Finish Editing">
+        </form>
+    </body>
+</html>

@@ -12,14 +12,32 @@
                     <th>Change Role</th>
                     <th>Delete User</th>
                 </tr>
-                <% for (let i = 0; i < users.length; i++) { %>
+                <% users.forEach((user) => { %>
                     <tr>
-                        <td><%= users[i].username %></td>
-                        <td><%= users[i].isadmin %></td>
-                        <td><a href="/users/changerole/<%= users[i].username %>">Change Role</a></td>
-                        <td><a href="/users/delete/<%= users[i].username %>">Delete</a></td>
+                        <td><%= user.username %></td>
+                        <td><%= users.isadmin %></td>
+                        <td><a href="/users/changerole/<%= user.username %>">Change Role</a></td>
+                        <td><a href="/users/delete/<%= user.username %>">Delete</a></td>
                     </tr>
-                <% } %>
+                <% }) %>
+            </table>
+        </div>
+        <div>
+            <table>
+                <tr>
+                    <th>Title</th>
+                    <th>Length</th>
+                    <th>Edit</th>
+                    <th>Delete</th>
+                </tr>
+                <% posts.forEach((post) => { %>
+                    <tr>
+                        <td><a href="/posts/load/<%= post._id %>"><%= post.name %></a></td>
+                        <td><%= post.content.length %></td>
+                        <td><a href="/posts/edit/<%= post._id %>">Edit</a></td>
+                        <td><a href="/posts/delete/<%= post._id %>">Delete</a></td>
+                    </tr>
+                <% }) %>
             </table>
         </div>
         <div>
@@ -27,13 +45,11 @@
             <form action="/posts/create" method="POST">
                 <input type="text" name="postname"><br>
                 <textarea name="postcontent" rows="6" cols="60"></textarea><br>
-                <input type="submit">
+                <input type="submit" value="Create Post">
             </form>
         </div>
         <div>
-            <form action="/logout">
-                <input type="submit" value="Logout">
-            </form>
+            <a href="/logout">Logout</a>
         </div>
     </body>
 </html>

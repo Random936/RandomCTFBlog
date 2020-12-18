@@ -10,9 +10,9 @@
             <a href="/member">Member Page</a>    
         </div>
         <div>
-            <% for (let i = 0; i < posts.length; i++) { %>
-            <a href="/posts/load/<%= posts[i]._id %>"><%= posts[i].name %></a><br>
-            <% } %>
+            <% posts.forEach((post) => { %>
+            <a href="/posts/load/<%= post._id %>"><%= post.name %></a><br>
+            <% }) %>
         </div>
     </body>
 </html>

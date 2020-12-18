@@ -27,7 +27,6 @@ app.get('/', (req, res) => {
     })
 })
 
-
 /*
 --------------------------------------------------
               Login Routes & Logic
@@ -147,9 +146,21 @@ app.get('/member', MemberAuth, (req, res) => {
 })
 
 app.get('/admin', AdminAuth, (req, res) => {
+
+    let query = {}
     db.users.find({}, (err, users) => {
-        if (err) {res.end("An error occured")}
-        res.render('admin.ejs', { users: users})
+        if (err) {return res.end("An error occured")}
+        query.users = JSON.parse(JSON.stringify(users))
+    })
+
+    db.posts.find({}, (err, posts) => {
+        if (err) {return res.end("An error occured")}
+        query.posts = JSON.parse(JSON.stringify(posts))
+
+        res.render('admin.ejs', {
+            users: query.users,
+            posts: query.posts
+        })
     })
 })
 
@@ -217,6 +228,7 @@ app.get('/users/delete/:username', (req, res) => {
             })
 
         }
+
     })
 
 })
@@ -230,33 +242,29 @@ app.get('/users/changerole/:username', AdminAuth, (req, res) => {
 
     db.users.findOne({ username: req.params.username }, (err, user) => {
         if (err) {return res.redirect('/admin')}
+        
+        let updateduser
         if (user.isadmin === false) {
-
-            db.users.update(user, { 
+            updateduser = { 
                 username: user.username, 
                 password: user.password,
                 isadmin: true
-            }, {}, (err) => {
-                if (err) {return res.redirect('/admin')}
-                console.log("Changed " + user.username + "'s role to admin.")
-            })
-
-            return res.redirect('/admin')
-
+            }
         } else {
-
-            db.users.update(user, { 
+            updateduser = { 
                 username: user.username, 
                 password: user.password,
-                isadmin: false 
-            }, {}, (err) => {
-                if (err) {return res.redirect('/admin')}
-                console.log("Changed " + user.username + "'s role to member.")
-            })
-
-            return res.redirect('/admin')
-            
+                isadmin: false
+            }
         }
+        
+        db.users.update(user, updateduser, {}, (err) => {
+            if (err) {return res.redirect('/admin')}
+            console.log("Changed " + user.username + "'s role to admin.")
+        })
+
+        return res.redirect('/admin')
+        
     })
 
 })
@@ -284,6 +292,57 @@ app.post('/posts/create', AdminAuth, (req, res) => {
 
 })
 
+app.get('/posts/edit/:id', AdminAuth, (req, res) => {
+    
+    if (typeof req.params.id !== "string") {
+        console.log("WARNING: NoSQL injection attempt detected! " + req.socket.address)
+        return res.redirect('/')
+    }
+
+    db.posts.findOne({ _id: req.params.id }, (err, post) => {
+
+        if (err) {return res.redirect('/')}
+        if (post) {
+            return res.render('postedit.ejs', {post: post})
+        }
+        return res.redirect('/')
+
+    })
+})
+
+app.post('/posts/edit/:id', AdminAuth, (req, res) => {
+    
+    if (typeof req.params.id !== "string") {
+        console.log("WARNING: NoSQL injection attempt detected! " + req.socket.address)
+        return res.redirect('/')
+    }
+
+    db.posts.update({ _id: req.params.id }, {
+        name: req.body.name,
+        content: req.body.content
+    }, (err) => {
+        if (err) {return res.redirect('/')}
+    })
+
+    res.redirect('/admin')
+
+})
+
+app.get('/posts/delete/:id', AdminAuth, (req, res) => {
+
+    if (typeof req.params.id !== "string") {
+        console.log("WARNING: NoSQL injection attempt detected! " + req.socket.address)
+        return res.redirect('/')
+    }
+
+    db.posts.remove({ _id: req.params.id }, {}, (err) => {
+        if (err) {return res.redirect('/admin')}
+        console.log("Removed blog post.")
+    })
+
+    res.redirect('/admin')
+})
+
 app.get('/posts/load/:id', (req, res) => {
     
     if (typeof req.params.id !== "string") {
@@ -291,14 +350,11 @@ app.get('/posts/load/:id', (req, res) => {
         return res.redirect('/')
     }
 
-    db.posts.findOne({_id: req.params.id}, (err, post) => {
+    db.posts.findOne({ _id: req.params.id }, (err, post) => {
 
         if (err) {return res.redirect('/')}
         if (post) {
-            return res.render('post.ejs', {
-                postname: post.name, 
-                postcontent: post.content
-            })
+            return res.render('posttemplate.ejs', { post: post })
         }
         return res.redirect('/')
 
@@ -306,6 +362,4 @@ app.get('/posts/load/:id', (req, res) => {
 
 })
 
-
 app.listen(80, () => {console.log("Now listening for incoming connections.")})
-

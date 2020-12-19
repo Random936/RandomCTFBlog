@@ -5,15 +5,36 @@
         <link rel="stylesheet" href="style.css">
     </head>
     <body>
-        <div class="uk-position-top-center">
-            <a class="uk-button" href="/login">Login</a>
-            <a class="uk-button" href="/signup">Sign Up</a>
-            <a class="uk-button" href="/admin">Admin Page</a>
-            <a class="uk-button" href="/member">Member Page</a>    
+        <div class="container">
+            <div class="uk-position-top-center">
+                <div class="uk-animation-slide-top">
+                    <a class="uk-button uk-button-default uk-button-color" href="/login">Login</a>
+                    <a class="uk-button uk-button-default uk-button-color" href="/signup">Sign Up</a>
+                    <a class="uk-button uk-button-default uk-button-color" href="/admin">Admin Page</a>
+                    <a class="uk-button uk-button-default uk-button-color" href="/member">Member Page</a>   
+                </div>
+            </div>
+            <div class="uk-position-relative uk-visable-toggle uk-light" tabindex="-1" uk-slideshow></div>
+                <ul class="uk-slideshow-items">
+                    <li>
+                        <img src="tempbackground.jpg" uk-cover>
+                    </li>
+                    <li>
+                        <img src="tempbackground.jpg" uk-cover>
+                    </li>
+                    <li>
+                        <img src="tempbackground.jpg" uk-cover>
+                    </li>
+                </ul>
+
+                <a class="uk-slidenav-large uk-position-center-left uk-hidden-hover" href="#" uk-slidenav-previous uk-slideshow-item="previous"></a>
+                <a class="uk-slidenav-large uk-position-center-right uk-hidden-hover" href="#" uk-slidenav-next uk-slideshow-item="next"></a>
+
+            </div>
         </div>
-        <div>
+        <div class="uk-position-bottom-center">
             <% posts.forEach((post) => { %>
-            <a class="uk-button-text" href="/posts/load/<%= post._id %>"><%= post.name %></a><br>
+            <a class="uk-button-text uk-button-color" href="/posts/load/<%= post._id %>"><%= post.name %></a>
             <% }) %>
         </div>
     </body>

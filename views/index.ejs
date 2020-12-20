@@ -1,41 +1,44 @@
 <html>
     <head>
         <title>RandomCTF</title>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.6.1/dist/css/uikit.min.css">
         <link rel="stylesheet" href="style.css">
     </head>
     <body>
-        <div class="container">
-            <div class="uk-position-top-center">
-                <div class="uk-animation-slide-top">
-                    <a class="uk-button uk-button-default uk-button-color" href="/login">Login</a>
-                    <a class="uk-button uk-button-default uk-button-color" href="/signup">Sign Up</a>
-                    <a class="uk-button uk-button-default uk-button-color" href="/admin">Admin Page</a>
-                    <a class="uk-button uk-button-default uk-button-color" href="/member">Member Page</a>   
-                </div>
+        <div class="slideshow-container">
+            <div class="title-bar">
+                <a href="/login">Login</a>
+                <a href="/signup">Sign Up</a>
+                <a href="/admin">Admin Page</a>
+                <a href="/member">Member Page</a>   
             </div>
-            <div class="uk-position-relative uk-visable-toggle uk-light" tabindex="-1" uk-slideshow></div>
-                <ul class="uk-slideshow-items">
-                    <li>
-                        <img src="tempbackground.jpg" uk-cover>
-                    </li>
-                    <li>
-                        <img src="tempbackground.jpg" uk-cover>
-                    </li>
-                    <li>
-                        <img src="tempbackground.jpg" uk-cover>
-                    </li>
-                </ul>
-
-                <a class="uk-slidenav-large uk-position-center-left uk-hidden-hover" href="#" uk-slidenav-previous uk-slideshow-item="previous"></a>
-                <a class="uk-slidenav-large uk-position-center-right uk-hidden-hover" href="#" uk-slidenav-next uk-slideshow-item="next"></a>
-
+            <div id="currentSlide">
+                <img src="tempbackground.jpg">
             </div>
+            <button class="pointer-next" onclick="changeSlide(1)">&#10095;</button>
+            <button class="pointer-prev" onclick="changeSlide(-1)">&#10094;</button>
+            
         </div>
-        <div class="uk-position-bottom-center">
-            <% posts.forEach((post) => { %>
-            <a class="uk-button-text uk-button-color" href="/posts/load/<%= post._id %>"><%= post.name %></a>
-            <% }) %>
+        <div id="posts">
         </div>
+        <script>
+            function loadPosts() {
+                fetch('/posts/loadall')
+                    .then(res => res.json())
+                    .then((data) => {
+                        if (data.status == 'success') {
+                            data.posts.forEach((post) => {
+                                let newpost = document.createElement('a')
+                                newpost.href = '/posts/load/' + post._id
+                                newpost.innerText = post.name
+                                let parent = document.getElementById('posts')
+                                parent.appendChild(newpost)
+                                parent.appendChild(document.createElement('br'))
+                            })
+                        }
+                    })
+
+            }
+            window.onload = loadPosts()
+        </script>
     </body>
 </html>

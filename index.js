@@ -4,6 +4,7 @@ const cookieParser = require('cookie-parser')
 const jwt = require('jsonwebtoken')
 const app = express()
 const Datastore = require('nedb')
+const bcrypt = require('bcrypt')
 
 let db = {}
 db.users = new Datastore({ filename: 'users.db', autoload: true })
@@ -11,6 +12,7 @@ db.posts = new Datastore({ filename: 'posts.db', autoload: true })
 
 // Change before production!
 const jwtsecret = "q3HKVf5TG2ez4KSeBlPXWRWQca3B5FNrPF0BHGPF"
+const saltRounds = 10
 
 app.use(express.static('static'))
 app.use(cookieParser())
@@ -48,28 +50,31 @@ app.post('/login', (req, res) => {
     }
 
     db.users.findOne({ 
-        username: req.body.username, 
-        password: req.body.password
+        username: req.body.username
     },(err, user) => {
-        if (err) {return undefined}
+
+        if (err) {return res.render('login.ejs', { loginmessage: "An unknown error occured." })}
 
         if (user) {
 
-            const jwtToken = jwt.sign(
-                {username: user.username, isadmin: user.isadmin},
-                jwtsecret
-            )
+            if (bcrypt.compareSync(req.body.password, user.password)) {
+                const jwtToken = jwt.sign(
+                    {username: user.username, isadmin: user.isadmin},
+                    jwtsecret
+                )
+        
+                res.cookie("login_token", jwtToken, {maxAge: 2592000000})
     
-            res.cookie("login_token", jwtToken, {maxAge: 2592000000})
+                if (user.isadmin === true) {
+                    console.log("Admin login successful.\n")
+                    res.redirect('/admin')
+                } else {
+                    console.log("Member login successful.\n")
+                    res.redirect('/member')
+                }
 
-            if (user.isadmin === true) {
-                console.log("Admin login successful.\n")
-                res.redirect('/admin')
-            } else {
-                console.log("Member login successful.\n")
-                res.redirect('/member')
             }
-    
+
         } else {
             res.render('login.ejs', { loginmessage: "Invalid username or password." })
         }
@@ -96,21 +101,23 @@ app.get('/signup', (req, res) => {
 app.post('/signup', (req, res) => {
 
     if (typeof req.body.username !== "string" || typeof req.body.password !== "string") {
+
         console.log("WARNING: NoSQL injection attempt detected! " + req.socket.address)
         return res.render('signup.ejs', { signupmessage: "An unknown error occured."})
-    }
-    
-    if (req.body.password !== req.body.confpass) {
-        return res.render('signup.ejs', { signupmessage: "Passwords did not match."})
-    }
 
-    if (req.body.username.length <= 0 || req.body.password.length <= 8) {
+    } else if (req.body.password !== req.body.confpass) {
+
+        return res.render('signup.ejs', { signupmessage: "Passwords did not match."})
+
+    } else if (req.body.username.length <= 0 || req.body.password.length <= 8) {
+
         return res.render('signup.ejs', { signupmessage: "Password must be at least 8 characters long."})
+        
     } 
     
     const username = req.body.username.match(/[a-zA-Z0-9]+/)[0]
     if (username !== req.body.username) {
-        return res.render('signup.ejs', { signupmessage: "Username is not allowed."})
+        return res.render('signup.ejs', { signupmessage: "Username contains invalid characters."})
     }
 
     db.users.findOne({username: req.body.username}, (err, user) => {
@@ -120,9 +127,11 @@ app.post('/signup', (req, res) => {
             })
         }
 
+        const passwordhash = bcrypt.hashSync(req.body.password, saltRounds)
+
         db.users.insert({ 
             username: req.body.username,
-            password: req.body.password,
+            password: passwordhash,
             isadmin: false
         },(err) => {
             if (err) {
@@ -147,22 +156,7 @@ app.get('/member', MemberAuth, (req, res) => {
 })
 
 app.get('/admin', AdminAuth, (req, res) => {
-
-    let query = {}
-    db.users.find({}, (err, users) => {
-        if (err) {return res.end("An error occured")}
-        query.users = JSON.parse(JSON.stringify(users))
-    })
-
-    db.posts.find({}, (err, posts) => {
-        if (err) {return res.end("An error occured")}
-        query.posts = JSON.parse(JSON.stringify(posts))
-
-        res.render('admin.ejs', {
-            users: query.users,
-            posts: query.posts
-        })
-    })
+    res.render('admin.ejs')
 })
 
 /*
@@ -176,13 +170,13 @@ function MemberAuth(req, res, next) {
     if (req.cookies.login_token) {
         jwt.verify(req.cookies.login_token, jwtsecret, (err) => {
             if (err) {
-                return res.sendStatus(403)
+                return res.redirect('/login')
             } else {
                 next()
             }
         })
     } else {
-        return res.sendStatus(401)
+        return res.redirect('/login')
     }
 
 }
@@ -192,13 +186,13 @@ function AdminAuth(req, res, next) {
     if (req.cookies.login_token) {
         jwt.verify(req.cookies.login_token, jwtsecret, (err, user) => {
             if (err || !user.isadmin === true) {
-                return res.sendStatus(403)
+                return res.redirect('/login')
             } else {
                 next()
             }
         })
     } else {
-        return res.sendStatus(401)
+        return res.redirect('/login')
     }
 
 }
@@ -208,6 +202,22 @@ function AdminAuth(req, res, next) {
                   User API Routes
 --------------------------------------------------
 */
+
+app.get('/users/loadall', AdminAuth, (req, res) => {
+
+    db.users.find({}, (err, users) => {
+
+        if (err) {return res.end(JSON.stringify({
+            status: "failed"
+        }))}
+
+        return res.end(JSON.stringify({
+            status: "success",
+            users: users
+        }))
+
+    })
+})
 
 app.get('/users/delete/:username', (req, res) => {
 
@@ -244,19 +254,16 @@ app.get('/users/changerole/:username', AdminAuth, (req, res) => {
     db.users.findOne({ username: req.params.username }, (err, user) => {
         if (err) {return res.redirect('/admin')}
         
-        let updateduser
+        let updateduser = { 
+            username: user.username, 
+                username: user.username, 
+            username: user.username, 
+            password: user.password,
+        }
         if (user.isadmin === false) {
-            updateduser = { 
-                username: user.username, 
-                password: user.password,
-                isadmin: true
-            }
+            updateduser.isadmin = true
         } else {
-            updateduser = { 
-                username: user.username, 
-                password: user.password,
-                isadmin: false
-            }
+            updateduser.isadmin = false
         }
         
         db.users.update(user, updateduser, {}, (err) => {
@@ -361,6 +368,21 @@ app.get('/posts/load/:id', (req, res) => {
 
     })
 
+})
+
+app.get('/posts/loadall', (req, res) => {
+    db.posts.find({}, (err, posts) => {
+
+        if (err) {return res.end(JSON.stringify({
+            status: "failed"
+        }))}
+        
+        return res.end(JSON.stringify({
+            status: "success",
+            posts: posts
+        }))
+
+    })
 })
 
 app.listen(80, () => {console.log("Now listening for incoming connections.")})

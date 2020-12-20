@@ -1,11 +1,47 @@
 body {
-    background-image: url("tempbackground.jpg");
     background-color: black;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    background-size: cover;
+    margin: 0;
 }
 
-.uk-button-color {
+.title-bar {
+    text-align: center;
+    display: flex;
+    font-size: xx-large;
+    position: absolute;
+}
+
+.title-bar a {
     color: white;
+    padding: 10px;
+    border: 2px solid;
+    text-decoration: none;
+}
+
+.title-bar a:hover {
+    color: gray;
+}
+
+.slideshow-slide {
+    display: none;
+}
+
+.slideshow-container {
+    position: relative;
+    max-width: 100%;
+    margin: auto;
+}
+
+.pointer-next, .pointer-prev {
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    color: white;
+    border: transparent;
+    background-color: transparent;
+    font-size: 200%;
+    user-select: none;
+}
+
+.pointer-next {
+    right: 0;
 }

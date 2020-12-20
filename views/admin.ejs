@@ -1,46 +1,30 @@
 <html>
     <head>
         <title>Administration</title>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.6.1/dist/css/uikit.min.css">
     </head>
     <body>
         <h1>Admin Page!</h1>
         <div>
             <h3>User Management</h3>
-            <table class="uk-table uk-table-divider">
+            <table id="usersTable">
                 <tr>
                     <th>Username</th>
                     <th>Admin</th>
                     <th>Change Role</th>
                     <th>Delete User</th>
                 </tr>
-                <% users.forEach((user) => { %>
-                    <tr>
-                        <td><%= user.username %></td>
-                        <td><%= user.isadmin %></td>
-                        <td><a class="uk-button-text" href="/users/changerole/<%= user.username %>">Change Role</a></td>
-                        <td><a class="uk-button-text" href="/users/delete/<%= user.username %>">Delete</a></td>
-                    </tr>
-                <% }) %>
+                
             </table>
         </div>
         <div>
             <h3>Blog Management</h3>
-            <table class="uk-table uk-table-divider">
+            <table id="postsTable">
                 <tr>
                     <th>Title</th>
                     <th>Length</th>
                     <th>Edit</th>
                     <th>Delete</th>
                 </tr>
-                <% posts.forEach((post) => { %>
-                    <tr>
-                        <td><a class="uk-button-text" href="/posts/load/<%= post._id %>"><%= post.name %></a></td>
-                        <td><%= post.content.length %></td>
-                        <td><a class="uk-button-text" href="/posts/edit/<%= post._id %>">Edit</a></td>
-                        <td><a class="uk-button-text" href="/posts/delete/<%= post._id %>">Delete</a></td>
-                    </tr>
-                <% }) %>
             </table>
         </div>
         <div>
@@ -52,7 +36,100 @@
             </form>
         </div>
         <div>
-            <a class="uk-button" href="/logout">Logout</a>
+            <a href="/logout">Logout</a>
         </div>
+        <script>
+
+            function fillUserTable() {
+                fetch('/users/loadall')
+                    .then(res => res.json())
+                    .then((data) => {
+                        if (data.status == 'success') {
+                            data.users.forEach((user) => {
+                                let parent = document.getElementById('usersTable')
+                                let row = document.createElement('tr')
+
+                                // For Username
+                                let usernametd = document.createElement('td')
+                                usernametd.innerText = user.username
+                                row.appendChild(usernametd)
+
+                                // For Admin Status
+                                let isadmintd = document.createElement('td')
+                                isadmintd.innerText = user.isadmin
+                                row.appendChild(isadmintd)
+
+                                // For Change Role Button
+                                let changeroletd = document.createElement('td')
+                                let changerole = document.createElement('a')
+                                changerole.href = '/users/changerole/' + user.username
+                                changerole.innerText = 'Change Role'
+                                changeroletd.appendChild(changerole)
+                                row.appendChild(changeroletd)
+
+                                // For Delete Button
+                                let deletebuttontd = document.createElement('td')
+                                let deletebutton = document.createElement('a')
+                                deletebutton.href = '/users/delete/' + user.username
+                                deletebutton.innerText = 'Delete'
+                                deletebuttontd.appendChild(deletebutton)
+                                row.appendChild(deletebuttontd)
+
+                                parent.appendChild(row)
+                            })
+                        }
+                    })
+            }
+
+            function fillPostTable() {
+                fetch('/posts/loadall')
+                    .then(res => res.json())
+                    .then((data) => {
+                        if (data.status == 'success') {
+                            data.posts.forEach((post) => {
+                                let parent = document.getElementById('postsTable')
+                                let row = document.createElement('tr')
+                                
+                                // For Title
+                                let postnametd = document.createElement('td')
+                                let postname = document.createElement('a')
+                                postname.href = '/posts/load/' + post._id
+                                postname.innerText = post.name
+                                postnametd.appendChild(postname)
+                                row.appendChild(postnametd)
+
+                                // For Length
+                                let lengthtd = document.createElement('td')
+                                lengthtd.innerText = post.content.length
+                                row.appendChild(lengthtd)
+
+                                // For Edit Button
+                                let editbuttontd = document.createElement('td')
+                                let editbutton = document.createElement('a')
+                                editbutton.href = '/posts/edit/' + post._id
+                                editbutton.innerText = 'Edit'
+                                editbuttontd.appendChild(editbutton)
+                                row.appendChild(editbuttontd)
+
+                                // For Delete Button
+                                let deletebuttontd = document.createElement('td')
+                                let deletebutton = document.createElement('a')
+                                deletebutton.href = '/posts/delete/' + post._id
+                                deletebutton.innerText = 'Delete'
+                                deletebuttontd.appendChild(deletebutton)
+                                row.appendChild(deletebuttontd)
+
+                                parent.appendChild(row)
+                            })
+                        }
+                    })
+            }
+
+            window.onload = function() {
+                fillUserTable()
+                fillPostTable()
+            }
+
+        </script>
     </body>
 </html>

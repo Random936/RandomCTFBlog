@@ -3,26 +3,72 @@ body {
     margin: 0;
 }
 
+/* 
+--------------------------------------------------
+                Title Bar Styles
+--------------------------------------------------
+*/
+
 .title-bar {
-    text-align: center;
+    margin-top: 3vh;
+    margin-left: 18vw;
+    width: 82vw;
+
+    background-color: rgba(0, 0, 0, 0.70);
+    
     display: flex;
-    font-size: xx-large;
+    justify-content: space-around;
+
+    font-size: x-large;
     position: absolute;
+
+    animation-name: fadeIn;
+    animation-duration: 3s;
+    z-index: 1;
 }
 
 .title-bar a {
+    width: 15vw;
+    text-align: center;
     color: white;
-    padding: 10px;
-    border: 2px solid;
+    padding: 30px;
     text-decoration: none;
 }
 
 .title-bar a:hover {
-    color: gray;
+    animation-name: buttonHighlight;
+    animation-duration: 500ms;
+    animation-fill-mode: forwards;
 }
+
+
+@keyframes buttonHighlight {
+    from {
+        color:white;
+        background-color: transparent;
+    } to {
+        color: black;
+        background-color: white;
+    }
+}
+
+/* 
+--------------------------------------------------
+                Slide Show Styles
+--------------------------------------------------
+*/
 
 .slideshow-slide {
     display: none;
+    animation-name: fadeInOut;
+    animation-duration: 2s;
+    z-index: 1;
+}
+
+.slideshow-slide img {
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
 }
 
 .slideshow-container {
@@ -39,9 +85,60 @@ body {
     border: transparent;
     background-color: transparent;
     font-size: 200%;
-    user-select: none;
 }
 
 .pointer-next {
     right: 0;
+}
+
+@keyframes fadeInOut {
+    from { opacity: 0; }
+    to { opacity: 100; }
+}
+
+/* 
+--------------------------------------------------
+                Post Bar Styles
+--------------------------------------------------
+*/
+
+.post-bar {
+    margin-left: 3vw;
+    width: 15vw;
+    height: 100vh;
+
+    display: flex;
+    flex-direction: column;
+
+    text-align: center;
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.70);
+    z-index: 1;
+
+    animation-name: fadeIn;
+    animation-duration: 2s;
+}
+
+.post-bar-title {
+    margin-top: 3vh;
+    font-size: 40px;
+    color: white;
+}
+
+.post-container {
+    background-color: rgba(44, 41, 41, 0.80);
+    border-radius: 20px;
+    margin: 20px;
+    padding: 10px;
+}
+
+.post-container a {
+    color: white;
+    text-decoration: none;
+    font-size: x-large;
+}
+
+.post-container p {
+    color: white;
+    text-align: left;
 }

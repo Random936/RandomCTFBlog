@@ -5,40 +5,83 @@
     </head>
     <body>
         <div class="slideshow-container">
+
             <div class="title-bar">
                 <a href="/login">Login</a>
                 <a href="/signup">Sign Up</a>
                 <a href="/admin">Admin Page</a>
                 <a href="/member">Member Page</a>   
             </div>
-            <div id="currentSlide">
+
+            <div id="posts" class="post-bar">
+                <h1 class="post-bar-title">Random<br>CTF</h1>
+            </div>
+
+            <div class="slideshow-slide">
                 <img src="tempbackground.jpg">
             </div>
+            <div class="slideshow-slide">
+                <img src="eiffeltower.jpg">
+            </div>
+
             <button class="pointer-next" onclick="changeSlide(1)">&#10095;</button>
             <button class="pointer-prev" onclick="changeSlide(-1)">&#10094;</button>
-            
-        </div>
-        <div id="posts">
+
         </div>
         <script>
+            let slideIndex = 0
+
+            function changeSlide(iterator) {
+                
+                let slides = document.getElementsByClassName('slideshow-slide')
+                let prevSlide = slideIndex
+
+                console.log(slides)
+                if (slideIndex + iterator > slides.length - 1) {
+                    slideIndex = 0
+                } else if (slideIndex + iterator < 0) {
+                    slideIndex = slides.length - 1
+                } else {
+                    slideIndex += iterator
+                }
+
+                slides[prevSlide].style.display = "none"
+                slides[slideIndex].style.display = "block"
+
+            }
+
             function loadPosts() {
                 fetch('/posts/loadall')
                     .then(res => res.json())
                     .then((data) => {
                         if (data.status == 'success') {
                             data.posts.forEach((post) => {
-                                let newpost = document.createElement('a')
-                                newpost.href = '/posts/load/' + post._id
-                                newpost.innerText = post.name
                                 let parent = document.getElementById('posts')
-                                parent.appendChild(newpost)
-                                parent.appendChild(document.createElement('br'))
+                                let postdiv = document.createElement('div')
+                                postdiv.classList.add('post-container')
+
+                                // For Post URL
+                                let postlink = document.createElement('a')
+                                postlink.href = '/posts/load/' + post._id
+                                postlink.innerText = post.name
+                                postdiv.appendChild(postlink)
+                                postdiv.appendChild(document.createElement('br'))
+
+                                let postcontent = document.createElement('p')
+                                postcontent.innerText = post.content.match(/[^.!?]+[.!?]/g)[0]
+                                postdiv.appendChild(postcontent)
+
+                                parent.appendChild(postdiv)
                             })
                         }
                     })
 
             }
-            window.onload = loadPosts()
+
+            window.onload = function () {
+                loadPosts()
+                changeSlide(0)
+            }
         </script>
     </body>
 </html>

@@ -2,23 +2,27 @@
     <head>
         <title>RandomCTF</title>
         <link rel="stylesheet" href="style.css">
+        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     </head>
     <body>
-        <div id="slideshowContainer" class="slideshow-container">
+        <div id="slideshowContainer">
 
             <div class="title-bar">
                 <a href="/login">Login</a>
-                <a href="/signup">Sign Up</a>
+                <a class="isDisabled" href="/signup">Sign Up</a>
                 <a href="/admin">Admin Page</a>
-                <a href="/member">Member Page</a>   
+                <a class="isDisabled" href="/member">Member Page</a>   
             </div>
 
             <div id="posts" class="post-bar">
-                <h1 class="post-bar-title" onmouseover="setSlide(0)">Random<br>CTF</h1>
+                <h1 class="post-bar-title">Random<br>CTF</h1>
             </div>
 
             <a class="pointer-next" onclick="iterateSlide(1)">&#10095;</a>
             <a class="pointer-prev" onclick="iterateSlide(-1)">&#10094;</a>
+
+            <div id="fullPostContainer">
+            </div>
 
             <div class="slideshow-slide">
                 <img src="capturetheflag.jpg">
@@ -54,6 +58,31 @@
 
             }
 
+            function loadPostContent(postid) {
+                fetch('/posts/load/' + postid)
+                    .then(res => res.json())
+                    .then((data) => {
+
+                        if (data.status == 'success') {
+                            
+                            let parent = document.getElementById('fullPostContainer')
+                            parent.innerHTML = ''
+
+                            let posttitle = document.createElement('h2')
+                            posttitle.innerText = data.post.name
+                            parent.appendChild(posttitle)
+                            
+                            console.log(data)
+                            let postcontent = document.createElement('p')
+                            postcontent.innerHTML = marked(data.post.content)
+                            parent.appendChild(postcontent)
+
+                            parent.style.display = "block"
+                        }
+
+                    })
+            }
+
             function createPostContainers(data) {
 
                 if (data.status == 'success') {
@@ -68,19 +97,18 @@
 
                         // For Post URL
                         let postlink = document.createElement('a')
-                        postlink.href = '/posts/load/' + post._id
-                        console.log(post.name)
+                        postlink.onclick = function () {
+                            console.log("CLICK")
+                            loadPostContent(post._id)
+                        }
                         postlink.innerText = post.name
                         postdiv.appendChild(postlink)
                         postdiv.appendChild(document.createElement('br'))
 
                         // For Post Content
                         let postcontent = document.createElement('p')
-                        if (post.content.match(/[^.!?]+[.!?]/g) !== null) {
-                            postcontent.innerText = post.content.match(/[^.!?]+[.!?]/g)[0]
-                        } else {
-                            postcontent.innerText = post.content
-                        } postdiv.appendChild(postcontent)
+                        postcontent.innerText = post.content
+                        postdiv.appendChild(postcontent)
 
                         // Append the div
                         postparent.appendChild(postdiv)
@@ -104,7 +132,6 @@
                     .then(res => res.json())
                     .then((data) => {
                         createPostContainers(data)                        
-
                     })
 
             }

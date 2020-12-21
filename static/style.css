@@ -83,7 +83,7 @@ body {
     object-fit: cover;
 }
 
-.slideshow-container {
+#slideshowContainer {
     position: relative;
     max-width: 100%;
     margin: auto;
@@ -158,11 +158,12 @@ body {
 .post-container a {
     color: white;
     text-decoration: none;
-    font-size: x-large;
+    font-size: 28px;
 }
 
 .post-container p {
     color: white;
+    font-size: large;
     text-align: left;
 }
 
@@ -172,4 +173,55 @@ body {
     } to {
         background-color: rgba(71, 68, 68, 0.8);
     }
+}
+
+/* 
+--------------------------------------------------
+              View Full Post Styles
+--------------------------------------------------
+*/
+
+#fullPostContainer {
+
+    display: none;
+
+    width: 68vw;
+    height: 78vh;
+    margin-left: 25vw;
+    margin-top: 20vh;
+    border-radius: 20px;
+
+    background-color: rgba(0, 0, 0, 0.95);
+    position: absolute;
+    z-index: 1;
+
+    overflow-x: hidden;
+    overflow: auto;
+    direction: rtl;
+}
+
+#fullPostContainer h2 {
+    margin: 40px;
+    font-size: 40px;
+    text-align: center;
+    color: white;
+    direction: ltr;
+}
+
+#fullPostContainer p {
+    margin: 40px;
+    color: white;
+    font-size: x-large;
+    direction: ltr;
+}
+
+/* 
+--------------------------------------------------
+                  Other Styles
+--------------------------------------------------
+*/
+
+.isDisabled {
+    color: grey !important;
+    pointer-events: none !important;
 }

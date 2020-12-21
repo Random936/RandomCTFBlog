@@ -11,7 +11,7 @@
                     <th>Username</th>
                     <th>Admin</th>
                     <th>Change Role</th>
-                    <th>Delete User</th>
+                    <th>Delete</th>
                 </tr>
                 
             </table>
@@ -38,6 +38,7 @@
         </div>
         <div>
             <a href="/logout">Logout</a>
+            <a href="/">Home Page</a>
         </div>
         <script>
 
@@ -93,15 +94,14 @@
                                 
                                 // For Title
                                 let postnametd = document.createElement('td')
-                                let postname = document.createElement('a')
-                                postname.href = '/posts/load/' + post._id
+                                let postname = document.createElement('p')
                                 postname.innerText = post.name
                                 postnametd.appendChild(postname)
                                 row.appendChild(postnametd)
 
                                 // For Length
                                 let lengthtd = document.createElement('td')
-                                lengthtd.innerText = post.content.length
+                                lengthtd.innerText = post.length
                                 row.appendChild(lengthtd)
 
                                 // For Edit Button

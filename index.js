@@ -292,11 +292,11 @@ app.get('/users/changerole/:username', AdminAuth, (req, res) => {
 app.post('/posts/create', AdminAuth, (req, res) => {
 
     if (req.body.postname.length <= 0 || req.body.postcontent.length <= 0 || !req.files) {
-        return res.redirect('/')
+        return res.redirect('/admin')
     }
 
     fs.writeFileSync(__dirname + '/static/uploads/' + req.files.image.name + '.jpg', req.files.image.data, (err) => {
-        if (err) {return res.redirect('/')}
+        if (err) {return res.redirect('/admin')}
     })
 
     db.posts.insert({
@@ -304,9 +304,9 @@ app.post('/posts/create', AdminAuth, (req, res) => {
         image: req.files.image.name,
         content: req.body.postcontent,
     }, (err, post) => {
-        if (err) {return res.redirect('/')}
+        if (err) {return res.redirect('/admin')}
         console.log("Created post " + req.body.postname + " with content length " + req.body.postcontent.length)
-        res.redirect('/posts/load/' + post._id)
+        res.redirect('/admin')
     })
 
 })
@@ -336,10 +336,10 @@ app.post('/posts/edit/:id', AdminAuth, (req, res) => {
         return res.redirect('/')
     }
 
-    db.posts.update({ _id: req.params.id }, {
+    db.posts.update({ _id: req.params.id }, { $set: {
         name: req.body.name,
         content: req.body.content
-    }, (err) => {
+    }}, (err) => {
         if (err) {return res.redirect('/')}
     })
 
@@ -356,7 +356,9 @@ app.get('/posts/delete/:id', AdminAuth, (req, res) => {
 
     db.posts.findOne({ _id: req.params.id }, (err, post) => {
         if (err) {return res.redirect('/admin')}
-        fs.unlinkSync(__dirname + '/static/uploads/' + post.image + '.jpg')
+        if (post.image !== undefined) {
+            fs.unlinkSync(__dirname + '/static/uploads/' + post.image + '.jpg')
+        }
     })
 
     db.posts.remove({ _id: req.params.id }, {}, (err) => {
@@ -371,17 +373,25 @@ app.get('/posts/load/:id', (req, res) => {
     
     if (typeof req.params.id !== "string") {
         console.log("WARNING: NoSQL injection attempt detected! " + req.socket.address)
-        return res.redirect('/')
+        return res.send(JSON.stringify({
+            status: "failed"
+        }))
     }
 
     db.posts.findOne({ _id: req.params.id }, (err, post) => {
 
-        if (err) {return res.redirect('/')}
-        if (post) {
-            return res.render('posttemplate.ejs', { post: post })
-        }
-        return res.redirect('/')
+        if (err) {return res.send(JSON.stringify({
+            status: "failed"
+        }))}
 
+        if (post) {
+            return res.end(JSON.stringify({
+                status: "success",
+                post: post
+            }))
+        }
+        
+        return res.send(JSON.stringify({ status: "failed" }))
     })
 
 })
@@ -392,6 +402,15 @@ app.get('/posts/loadall', (req, res) => {
         if (err) {return res.end(JSON.stringify({
             status: "failed"
         }))}
+
+        posts.forEach((post) => {
+
+            post.length = post.content.length
+            if (post.content.match(/[^.!?]+[.!?]/g) !== null) {
+                post.content = post.content.match(/[^.!?]+[.!?]/g)[0]
+            }
+            
+        })
         
         return res.end(JSON.stringify({
             status: "success",

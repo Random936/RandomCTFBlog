@@ -1,6 +1,8 @@
 const express = require('express')
+const expressFileUpload = require('express-fileupload')
 const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
+const fs = require('fs')
 const jwt = require('jsonwebtoken')
 const app = express()
 const Datastore = require('nedb')
@@ -15,9 +17,13 @@ const jwtsecret = "q3HKVf5TG2ez4KSeBlPXWRWQca3B5FNrPF0BHGPF"
 const saltRounds = 10
 
 app.use(express.static('static'))
+app.use(expressFileUpload({
+    safeFileNames: true
+}))
 app.use(cookieParser())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
+
 app.set('view engine', 'ejs')
 
 app.get('/', (req, res) => {
@@ -285,12 +291,17 @@ app.get('/users/changerole/:username', AdminAuth, (req, res) => {
 
 app.post('/posts/create', AdminAuth, (req, res) => {
 
-    if (req.body.postname.length <= 0 || req.body.postcontent.length <= 0) {
+    if (req.body.postname.length <= 0 || req.body.postcontent.length <= 0 || !req.files) {
         return res.redirect('/')
     }
 
+    fs.writeFileSync(__dirname + '/static/uploads/' + req.files.image.name + '.jpg', req.files.image.data, (err) => {
+        if (err) {return res.redirect('/')}
+    })
+
     db.posts.insert({
         name: req.body.postname,
+        image: req.files.image.name,
         content: req.body.postcontent,
     }, (err, post) => {
         if (err) {return res.redirect('/')}
@@ -342,6 +353,11 @@ app.get('/posts/delete/:id', AdminAuth, (req, res) => {
         console.log("WARNING: NoSQL injection attempt detected! " + req.socket.address)
         return res.redirect('/')
     }
+
+    db.posts.findOne({ _id: req.params.id }, (err, post) => {
+        if (err) {return res.redirect('/admin')}
+        fs.unlinkSync(__dirname + '/static/uploads/' + post.image + '.jpg')
+    })
 
     db.posts.remove({ _id: req.params.id }, {}, (err) => {
         if (err) {return res.redirect('/admin')}

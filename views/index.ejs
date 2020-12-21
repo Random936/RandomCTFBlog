@@ -4,7 +4,7 @@
         <link rel="stylesheet" href="style.css">
     </head>
     <body>
-        <div class="slideshow-container">
+        <div id="slideshowContainer" class="slideshow-container">
 
             <div class="title-bar">
                 <a href="/login">Login</a>
@@ -14,29 +14,30 @@
             </div>
 
             <div id="posts" class="post-bar">
-                <h1 class="post-bar-title">Random<br>CTF</h1>
+                <h1 class="post-bar-title" onmouseover="setSlide(0)">Random<br>CTF</h1>
             </div>
+
+            <a class="pointer-next" onclick="iterateSlide(1)">&#10095;</a>
+            <a class="pointer-prev" onclick="iterateSlide(-1)">&#10094;</a>
 
             <div class="slideshow-slide">
-                <img src="tempbackground.jpg">
+                <img src="capturetheflag.jpg">
             </div>
-            <div class="slideshow-slide">
-                <img src="eiffeltower.jpg">
-            </div>
-
-            <button class="pointer-next" onclick="changeSlide(1)">&#10095;</button>
-            <button class="pointer-prev" onclick="changeSlide(-1)">&#10094;</button>
-
+        
         </div>
         <script>
+
             let slideIndex = 0
 
-            function changeSlide(iterator) {
+            function setSlide(index) {
+                slideIndex = 0
+                iterateSlide(index)
+            }
+
+            function iterateSlide(iterator) {
                 
                 let slides = document.getElementsByClassName('slideshow-slide')
-                let prevSlide = slideIndex
 
-                console.log(slides)
                 if (slideIndex + iterator > slides.length - 1) {
                     slideIndex = 0
                 } else if (slideIndex + iterator < 0) {
@@ -45,8 +46,56 @@
                     slideIndex += iterator
                 }
 
-                slides[prevSlide].style.display = "none"
+                console.log("Switching slide to: " + slideIndex)
+                for (let i = 0; i < slides.length; i++) {
+                    slides[i].style.display = "none"
+                }
                 slides[slideIndex].style.display = "block"
+
+            }
+
+            function createPostContainers(data) {
+
+                if (data.status == 'success') {
+
+                    data.posts.forEach((post, index) => {
+
+                        // Create Post Container
+                        let postparent = document.getElementById('posts')
+                        let postdiv = document.createElement('div')
+                        postdiv.classList.add('post-container')
+                        postdiv.onmouseover = function (event) {eval("setSlide(" + (index + 1) + ")")}
+
+                        // For Post URL
+                        let postlink = document.createElement('a')
+                        postlink.href = '/posts/load/' + post._id
+                        console.log(post.name)
+                        postlink.innerText = post.name
+                        postdiv.appendChild(postlink)
+                        postdiv.appendChild(document.createElement('br'))
+
+                        // For Post Content
+                        let postcontent = document.createElement('p')
+                        if (post.content.match(/[^.!?]+[.!?]/g) !== null) {
+                            postcontent.innerText = post.content.match(/[^.!?]+[.!?]/g)[0]
+                        } else {
+                            postcontent.innerText = post.content
+                        } postdiv.appendChild(postcontent)
+
+                        // Append the div
+                        postparent.appendChild(postdiv)
+
+                        // Create Slide
+                        let slideparent = document.getElementById('slideshowContainer')
+                        let slidediv = document.createElement('div')
+                        slidediv.classList.add('slideshow-slide')
+                        let slideimage = document.createElement('img')
+                        slideimage.src = '/uploads/' + post.image + '.jpg'
+                        slidediv.appendChild(slideimage)
+                        slideparent.appendChild(slidediv)
+                    })
+
+                }
 
             }
 
@@ -54,33 +103,15 @@
                 fetch('/posts/loadall')
                     .then(res => res.json())
                     .then((data) => {
-                        if (data.status == 'success') {
-                            data.posts.forEach((post) => {
-                                let parent = document.getElementById('posts')
-                                let postdiv = document.createElement('div')
-                                postdiv.classList.add('post-container')
+                        createPostContainers(data)                        
 
-                                // For Post URL
-                                let postlink = document.createElement('a')
-                                postlink.href = '/posts/load/' + post._id
-                                postlink.innerText = post.name
-                                postdiv.appendChild(postlink)
-                                postdiv.appendChild(document.createElement('br'))
-
-                                let postcontent = document.createElement('p')
-                                postcontent.innerText = post.content.match(/[^.!?]+[.!?]/g)[0]
-                                postdiv.appendChild(postcontent)
-
-                                parent.appendChild(postdiv)
-                            })
-                        }
                     })
 
             }
 
             window.onload = function () {
                 loadPosts()
-                changeSlide(0)
+                iterateSlide(0)
             }
         </script>
     </body>

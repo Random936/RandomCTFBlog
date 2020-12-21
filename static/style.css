@@ -5,6 +5,21 @@ body {
 
 /* 
 --------------------------------------------------
+                Custom Scroll Bar
+--------------------------------------------------
+*/
+
+::-webkit-scrollbar {
+    width: 7px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: rgba(65, 65, 65, 0.70);
+    border-radius: 10px;
+}
+
+/* 
+--------------------------------------------------
                 Title Bar Styles
 --------------------------------------------------
 */
@@ -21,9 +36,6 @@ body {
 
     font-size: x-large;
     position: absolute;
-
-    animation-name: fadeIn;
-    animation-duration: 3s;
     z-index: 1;
 }
 
@@ -37,7 +49,7 @@ body {
 
 .title-bar a:hover {
     animation-name: buttonHighlight;
-    animation-duration: 500ms;
+    animation-duration: 1s;
     animation-fill-mode: forwards;
 }
 
@@ -60,7 +72,7 @@ body {
 
 .slideshow-slide {
     display: none;
-    animation-name: fadeInOut;
+    animation-name: fadeIn;
     animation-duration: 2s;
     z-index: 1;
 }
@@ -85,13 +97,14 @@ body {
     border: transparent;
     background-color: transparent;
     font-size: 200%;
+    z-index: 1;
 }
 
 .pointer-next {
     right: 0;
 }
 
-@keyframes fadeInOut {
+@keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 100; }
 }
@@ -117,6 +130,9 @@ body {
 
     animation-name: fadeIn;
     animation-duration: 2s;
+
+    overflow-x: hidden;
+    direction: rtl;
 }
 
 .post-bar-title {
@@ -126,10 +142,17 @@ body {
 }
 
 .post-container {
+    direction: ltr;
     background-color: rgba(44, 41, 41, 0.80);
     border-radius: 20px;
     margin: 20px;
     padding: 10px;
+}
+
+.post-container:hover {
+    animation-name: postHighlight;
+    animation-duration: 500ms;
+    animation-fill-mode: forwards;
 }
 
 .post-container a {
@@ -141,4 +164,12 @@ body {
 .post-container p {
     color: white;
     text-align: left;
+}
+
+@keyframes postHighlight {
+    from {
+        background-color: rgba(44, 41, 41, 0.80);
+    } to {
+        background-color: rgba(71, 68, 68, 0.8);
+    }
 }

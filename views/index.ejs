@@ -18,13 +18,10 @@
                 <h1 class="post-bar-title">Random<br>CTF</h1>
             </div>
 
-            <a class="pointer-next" onclick="iterateSlide(1)">&#10095;</a>
-            <a class="pointer-prev" onclick="iterateSlide(-1)">&#10094;</a>
-
             <div id="fullPostContainer">
             </div>
 
-            <div class="slideshow-slide">
+            <div class="slideshow-slide slideshow-active">
                 <img src="capturetheflag.jpg">
             </div>
         
@@ -52,9 +49,10 @@
 
                 console.log("Switching slide to: " + slideIndex)
                 for (let i = 0; i < slides.length; i++) {
-                    slides[i].style.display = "none"
+                    slides[i].classList.remove('slideshow-active')
                 }
-                slides[slideIndex].style.display = "block"
+
+                slides[slideIndex].classList.add('slideshow-active')
 
             }
 
@@ -98,7 +96,6 @@
                         // For Post URL
                         let postlink = document.createElement('a')
                         postlink.onclick = function () {
-                            console.log("CLICK")
                             loadPostContent(post._id)
                         }
                         postlink.innerText = post.name

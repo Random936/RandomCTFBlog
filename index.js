@@ -65,7 +65,7 @@ app.post('/login', (req, res) => {
 
             if (bcrypt.compareSync(req.body.password, user.password)) {
                 const jwtToken = jwt.sign(
-                    {username: user.username, isadmin: user.isadmin},
+                    { username: user.username, isadmin: user.isadmin },
                     jwtsecret
                 )
         
@@ -79,6 +79,8 @@ app.post('/login', (req, res) => {
                     res.redirect('/member')
                 }
 
+            } else {
+                res.render('login.ejs', { loginmessage: "Invalid username or password." })
             }
 
         } else {
@@ -261,9 +263,7 @@ app.get('/users/changerole/:username', AdminAuth, (req, res) => {
         if (err) {return res.redirect('/admin')}
         
         let updateduser = { 
-            username: user.username, 
-                username: user.username, 
-            username: user.username, 
+            username: user.username,
             password: user.password,
         }
         if (user.isadmin === false) {
@@ -274,7 +274,12 @@ app.get('/users/changerole/:username', AdminAuth, (req, res) => {
         
         db.users.update(user, updateduser, {}, (err) => {
             if (err) {return res.redirect('/admin')}
-            console.log("Changed " + user.username + "'s role to admin.")
+            if (updateduser.isadmin) {
+                console.log("Changed " + user.username + "'s role to admin.")
+            } else {
+                console.log("Changed " + user.username + "'s role to member.")
+            }
+            
         })
 
         return res.redirect('/admin')

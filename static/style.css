@@ -40,7 +40,8 @@ body {
 }
 
 .title-bar a {
-    width: 15vw;
+    flex-grow: 1;
+    flex-shrink: 1;
     text-align: center;
     color: white;
     padding: 30px;
@@ -113,12 +114,15 @@ body {
 }
 
 .post-container {
-    direction: ltr;
-    background-color: rgba(44, 41, 41, 0.80);
-    border-radius: 20px;
     margin: 20px;
     padding: 10px;
+    border-radius: 20px;
+    
+    background-color: rgba(44, 41, 41, 0.80);
+    
     transition: background-color 500ms;
+    cursor: pointer;
+    direction: ltr;
 }
 
 .post-container:hover {
@@ -186,4 +190,123 @@ body {
 .isDisabled {
     color: grey !important;
     pointer-events: none !important;
+}
+
+/* 
+--------------------------------------------------
+                    Admin Page
+--------------------------------------------------
+*/
+
+.admin-page-body {
+    background-image: url('defaultbackground.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* 
+--------------------------------------------------
+              Admin Page Title Bar
+--------------------------------------------------
+*/
+
+.admin-title-bar {
+    margin-top: 3vh;
+    
+    display: flex;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.70);
+
+    font-size: x-large;
+}
+
+.admin-title-bar a {
+    flex-grow: 1;
+    flex-shrink: 1;
+    cursor: pointer;
+    text-align: center;
+    color: white;
+    padding: 30px;
+    text-decoration: none;
+    transition: color 250ms, background-color 1s;
+}
+
+.admin-title-bar a:hover {
+    color: black;
+    background-color: white;
+}
+
+/* 
+--------------------------------------------------
+                Admin Page Tables
+--------------------------------------------------
+*/
+
+.admin-container {
+    position: absolute;
+    opacity: 0;
+    transition: opacity 500ms;
+
+    width: 94vw;
+    height: 82vh;
+
+    margin-top: 3vh;
+    margin-left: 3vw;
+    margin-right: 3vw;
+
+    border-radius: 20px;
+    background-color: rgba(0, 0, 0, 0.90);  
+}
+
+.admin-table-container {
+    margin-top: 1vh;
+    margin-bottom: 1vh;
+    margin-left: 1vw;
+    margin-right: 1vw;
+
+    width: 45vw;
+    height: 80vh;
+
+    border-radius: 20px;
+    background-color: rgba(26, 26, 26, 0.95);
+}
+
+.admin-table {
+    margin: 15px;
+    border-collapse: collapse;
+    text-align: center;
+    width: calc(100% - 30px);
+}
+
+.admin-table tr th {
+    font-size: x-large;
+    background-color: rgb(34, 34, 34);
+}
+
+.admin-table tr {
+    border-bottom: 2px solid rgb(34, 34, 34);
+
+    color: white;
+    font-size: large;
+    background-color: rgb(26, 26, 26);
+    transition: background-color 500ms;
+}
+
+.admin-table tr:hover {
+    background-color: rgb(34, 34, 34);
+}
+
+.admin-table tr a {
+    display: block;
+    border-radius: 5px;
+
+    color: white;
+    text-decoration: none;
+    transition: color 250ms, background-color 1s;
+}
+
+.admin-table tr a:hover {
+    color: black;
+    background-color: white;
 }

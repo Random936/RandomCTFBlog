@@ -1,33 +1,44 @@
 <html>
     <head>
         <title>Administration</title>
+        <link rel="stylesheet" href="style.css">
     </head>
-    <body>
-        <h1>Admin Page!</h1>
-        <div>
-            <h3>User Management</h3>
-            <table id="usersTable">
-                <tr>
-                    <th>Username</th>
-                    <th>Admin</th>
-                    <th>Change Role</th>
-                    <th>Delete</th>
-                </tr>
-                
-            </table>
+    <body class="admin-page-body">
+
+        <div class="admin-title-bar">
+            <a onclick="setSelectedTab('database-tab')">Database</a>
+            <a>Marketplace</a>
+            <a>Create Post</a>
+            <a href="/">Home Page</a>
+            <a href="/logout">Logout</a>
         </div>
-        <div>
-            <h3>Blog Management</h3>
-            <table id="postsTable">
-                <tr>
-                    <th>Title</th>
-                    <th>Length</th>
-                    <th>Edit</th>
-                    <th>Delete</th>
-                </tr>
-            </table>
+
+        <div class="admin-container">
+            <div id="database-tab">
+                <div class="admin-table-container" style="float: left;">
+                    <table id="usersTable" class="admin-table">
+                        <tr>
+                            <th>Username</th>
+                            <th>Admin</th>
+                            <th>Change Role</th>
+                            <th>Delete</th>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="admin-table-container" style="float: right;">
+                    <table id="postsTable" class="admin-table">
+                        <tr>
+                            <th>Post Title</th>
+                            <th>Length</th>
+                            <th>Edit</th>
+                            <th>Delete</th>
+                        </tr>
+                    </table>
+                </div>
+            </div>
         </div>
-        <div>
+        <div style="display: none;">
             <h3>Create Post</h3>
             <form action="/posts/create" method="POST" enctype="multipart/form-data">
                 <input type="text" name="postname"><br>
@@ -36,11 +47,21 @@
                 <input type="submit" value="Create Post">
             </form>
         </div>
-        <div>
-            <a href="/logout">Logout</a>
-            <a href="/">Home Page</a>
-        </div>
+
         <script>
+
+            function setSelectedTab(tabid) {
+                let parent = document.querySelector('.admin-container')
+                let tabelement = document.getElementById(tabid)
+
+                if (parent.style.opacity == 0) {
+                    parent.style.opacity = 1
+                } else {
+                    parent.style.opacity = 0
+                }
+
+                //tabelement.style.display = "block"
+            }
 
             function fillUserTable() {
                 fetch('/users/loadall')

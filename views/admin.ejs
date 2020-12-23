@@ -5,16 +5,17 @@
     </head>
     <body class="admin-page-body">
 
-        <div class="admin-title-bar">
-            <a onclick="setSelectedTab('database-tab')">Database</a>
-            <a>Marketplace</a>
-            <a>Create Post</a>
+        <div id="adminTitleBar" class="admin-title-bar">
+            <a id="database-button" onclick="setSelectedTab('database-tab', 'database-button')">Database</a>
+            <a id="marketplace-button">Marketplace</a>
+            <a id="createpost-button" onclick="setSelectedTab('createpost-tab', 'createpost-button')">Create Post</a>
             <a href="/">Home Page</a>
             <a href="/logout">Logout</a>
         </div>
 
-        <div class="admin-container">
-            <div id="database-tab">
+        <div id="adminContainer" class="admin-container">
+
+            <div id="database-tab" style="display: none;">
                 <div class="admin-table-container" style="float: left;">
                     <table id="usersTable" class="admin-table">
                         <tr>
@@ -37,30 +38,78 @@
                     </table>
                 </div>
             </div>
-        </div>
-        <div style="display: none;">
-            <h3>Create Post</h3>
-            <form action="/posts/create" method="POST" enctype="multipart/form-data">
-                <input type="text" name="postname"><br>
-                <input type="file" name="image"><br>
-                <textarea name="postcontent" rows="6" cols="60"></textarea><br>
-                <input type="submit" value="Create Post">
-            </form>
+
+            <div id="createpost-tab" class="admin-create-post-container" style="display: none;">
+                <form action="/posts/create" method="POST" enctype="multipart/form-data">
+                    <input type="text" name="postname" class="admin-create-post-title" style="float: left;" placeholder="Enter your post's title.">
+                    <input type="file" name="image" class="admin-create-post-upload" style="float: right;">
+                    <textarea name="postcontent" class="admin-create-post-textarea" rows="6" cols="60"></textarea>
+                    <input type="submit" class="admin-create-post-submit" value="Create Post">
+                </form>
+            </div>
+
+            <div id="editpost-tab" class="admin-create-post-container" style="display: none;">
+                <form method="POST" enctype="multipart/form-data">
+                    <input type="text" name="postname" class="admin-create-post-title" style="text-align: center;">
+                    <textarea name="postcontent" class="admin-create-post-textarea" rows="6" cols="60"></textarea>
+                    <div style="display: flex; justify-content: space-evenly;">
+                        <input type="submit" class="admin-create-post-submit" value="Finish Editing">
+                        <a class="admin-create-post-submit" onclick="setSelectedTab('editpost-tab', 'database-button')">Cancel</a>
+                    </div>
+                </form>
+                
+            </div>
         </div>
 
         <script>
 
-            function setSelectedTab(tabid) {
-                let parent = document.querySelector('.admin-container')
+            function formatEditForm(postid) {
+                fetch('/posts/load/' + postid)
+                    .then(res => res.json())
+                    .then((data) => {
+                        if (data.status == 'success') {
+                            console.log('success')
+                            let parent = document.getElementById('adminContainer')
+                            let edittab = document.getElementById('editpost-tab')
+                            parent.style.opacity = 1
+
+                            for (let i = 0; i < parent.children.length; i++) {
+                                parent.children[i].style.display = "none"
+                            }
+                            edittab.style.display = "block"
+
+                            document.querySelector('#editpost-tab > form').action = '/posts/edit/' + data.post._id
+                            let posttitle = document.querySelector('#editpost-tab > form > input.admin-create-post-title')
+                            posttitle.value = data.post.name
+                            let postcontent = document.querySelector('#editpost-tab > form > textarea')
+                            postcontent.textContent = data.post.content
+
+                        }
+
+                    })
+            }
+
+            function setSelectedTab(tabid, buttonid) {
+                let parent = document.getElementById('adminContainer')
+                let titlebar = document.getElementById('adminTitleBar')
+                let buttonelement = document.getElementById(buttonid)
                 let tabelement = document.getElementById(tabid)
 
                 if (parent.style.opacity == 0) {
+                    for (let i = 0; i < titlebar.children.length; i++) {
+                        titlebar.children[i].classList.add('isDisabled')
+                    } buttonelement.classList.remove('isDisabled')
                     parent.style.opacity = 1
                 } else {
-                    parent.style.opacity = 0
+                    for (let i = 0; i < titlebar.children.length; i++) {
+                        titlebar.children[i].classList.remove('isDisabled')
+                    } parent.style.opacity = 0
                 }
 
-                //tabelement.style.display = "block"
+                for (let i = 0; i < parent.children.length; i++) {
+                    parent.children[i].style.display = "none"
+                }
+                tabelement.style.display = "block"
             }
 
             function fillUserTable() {
@@ -128,7 +177,7 @@
                                 // For Edit Button
                                 let editbuttontd = document.createElement('td')
                                 let editbutton = document.createElement('a')
-                                editbutton.href = '/posts/edit/' + post._id
+                                editbutton.onclick = function () {formatEditForm(post._id)}
                                 editbutton.innerText = 'Edit'
                                 editbuttontd.appendChild(editbutton)
                                 row.appendChild(editbuttontd)

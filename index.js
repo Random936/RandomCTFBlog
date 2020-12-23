@@ -239,9 +239,13 @@ app.get('/users/delete/:username', (req, res) => {
         if (err) {return res.redirect('/')}
         if (user.isadmin === true || user.username === req.params.username) {
 
+            if (user.username === req.params.username) {
+                res.clearCookie('login_token')
+            }
+
             db.users.remove({ username: req.params.username }, {}, (err) => {
                 if (err) {return res.redirect('/')}
-                if (user.username === req.params.username) {res.redirect('/logout')}
+                if (user.username === req.params.username) {return res.redirect('/logout')}
                 console.log("Removed user: ", req.params.username)
                 res.redirect('/admin')
             })
@@ -316,24 +320,6 @@ app.post('/posts/create', AdminAuth, (req, res) => {
 
 })
 
-app.get('/posts/edit/:id', AdminAuth, (req, res) => {
-    
-    if (typeof req.params.id !== "string") {
-        console.log("WARNING: NoSQL injection attempt detected! " + req.socket.address)
-        return res.redirect('/')
-    }
-
-    db.posts.findOne({ _id: req.params.id }, (err, post) => {
-
-        if (err) {return res.redirect('/')}
-        if (post) {
-            return res.render('postedit.ejs', {post: post})
-        }
-        return res.redirect('/')
-
-    })
-})
-
 app.post('/posts/edit/:id', AdminAuth, (req, res) => {
     
     if (typeof req.params.id !== "string") {
@@ -341,9 +327,14 @@ app.post('/posts/edit/:id', AdminAuth, (req, res) => {
         return res.redirect('/')
     }
 
+    if (typeof req.body.postname !== "string" || typeof req.body.postcontent !== "string") {
+        console.log(req.body.postname + " " + req.body.postcontent)
+        return res.redirect('/')
+    }
+
     db.posts.update({ _id: req.params.id }, { $set: {
-        name: req.body.name,
-        content: req.body.content
+        name: req.body.postname,
+        content: req.body.postcontent
     }}, (err) => {
         if (err) {return res.redirect('/')}
     })

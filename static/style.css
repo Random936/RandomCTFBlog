@@ -5,7 +5,7 @@ body {
 
 /* 
 --------------------------------------------------
-                Custom Scroll Bar
+              Custom Webkit Styles
 --------------------------------------------------
 */
 
@@ -14,8 +14,22 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-    background-color: rgba(65, 65, 65, 0.70);
+    background-color: rgb(65, 65, 65);
     border-radius: 10px;
+}
+
+::-webkit-file-upload-button {
+    border: 1px;
+    border-radius: 5px;
+
+    color: white;
+    background-color: rgb(46, 95, 230);
+    transition: color 250ms, background-color 1s;
+}
+
+::-webkit-file-upload-button:hover {
+    color: black;
+    background-color: white;
 }
 
 /* 
@@ -183,17 +197,6 @@ body {
 
 /* 
 --------------------------------------------------
-                  Other Styles
---------------------------------------------------
-*/
-
-.isDisabled {
-    color: grey !important;
-    pointer-events: none !important;
-}
-
-/* 
---------------------------------------------------
                     Admin Page
 --------------------------------------------------
 */
@@ -203,6 +206,22 @@ body {
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
+}
+
+.admin-container {
+    position: absolute;
+    opacity: 0;
+    transition: opacity 500ms;
+
+    width: 94vw;
+    height: 82vh;
+
+    margin-top: 3vh;
+    margin-left: 3vw;
+    margin-right: 3vw;
+
+    border-radius: 20px;
+    background-color: rgba(0, 0, 0, 0.90);  
 }
 
 /* 
@@ -243,22 +262,6 @@ body {
 --------------------------------------------------
 */
 
-.admin-container {
-    position: absolute;
-    opacity: 0;
-    transition: opacity 500ms;
-
-    width: 94vw;
-    height: 82vh;
-
-    margin-top: 3vh;
-    margin-left: 3vw;
-    margin-right: 3vw;
-
-    border-radius: 20px;
-    background-color: rgba(0, 0, 0, 0.90);  
-}
-
 .admin-table-container {
     margin-top: 1vh;
     margin-bottom: 1vh;
@@ -281,11 +284,11 @@ body {
 
 .admin-table tr th {
     font-size: x-large;
-    background-color: rgb(34, 34, 34);
+    background-color: rgb(50, 50, 50);
 }
 
 .admin-table tr {
-    border-bottom: 2px solid rgb(34, 34, 34);
+    border-bottom: 2px solid rgb(50, 50, 50);
 
     color: white;
     font-size: large;
@@ -294,7 +297,7 @@ body {
 }
 
 .admin-table tr:hover {
-    background-color: rgb(34, 34, 34);
+    background-color:rgb(50, 50, 50);
 }
 
 .admin-table tr a {
@@ -302,6 +305,7 @@ body {
     border-radius: 5px;
 
     color: white;
+    cursor: pointer;
     text-decoration: none;
     transition: color 250ms, background-color 1s;
 }
@@ -309,4 +313,139 @@ body {
 .admin-table tr a:hover {
     color: black;
     background-color: white;
+}
+
+/* 
+--------------------------------------------------
+              Admin Page Create Post
+--------------------------------------------------
+*/
+
+.admin-create-post-container {
+    margin-top: 1vh;
+    margin-bottom: 1vh;
+    margin-left: 1vw;
+    margin-right: 1vw;
+
+    height: calc(80vh - 30px);
+
+    padding: 15px;
+    border-radius: 20px;
+    text-align: center;
+}
+
+.admin-create-post-title {
+    width: 49%;
+    padding: 10px;
+    border: 1px;
+    border-radius: 10px;
+
+    font-size: larger;
+    color: white;
+    background-color: rgb(60, 60, 60);
+}
+
+.admin-create-post-upload {
+    width: 49%;
+    padding: 10px;
+    border: 1px;
+    border-radius: 10px;
+
+    color: white;
+    font-size: large;
+    background-color: rgb(60, 60, 60);
+}
+
+.admin-create-post-textarea {
+    width: 100%;
+    height: calc(64vh - 32px);
+    margin-top: 2vh;
+
+    padding: 20px;
+    border: 1px;
+    border-radius: 10px;
+    
+    resize: none;
+    font-size: large;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    color: white;
+    background-color: rgb(60, 60, 60);
+}
+
+.admin-create-post-submit {
+    width: 20%;
+    margin: 3vh;
+    padding: 15px;
+    border: 1px;
+    border-radius: 15px;
+    
+    color: white;
+    font-size: large;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    background-color: rgb(46, 95, 230);
+    transition: color 250ms, background-color 1s;
+}
+
+.admin-create-post-submit:hover {
+    color: black;
+    background-color: white;
+}
+
+/* 
+--------------------------------------------------
+                  Login Page
+--------------------------------------------------
+*/
+
+.login-form-container {
+    padding: 20px;
+
+    margin-top: 24vh;
+    margin-left: 40vw;
+    margin-right: 40vw;
+
+    height: 46vh;
+    width: 20vw;
+    border-radius: 20px;
+
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.90);
+}
+
+.login-form-title {
+    margin: 20px;
+    color: white;
+    font-size: 40px;
+}
+
+.login-input {
+    margin: 10px;
+    width: 18vw;
+}
+
+.login-submit {
+    width: 50%;
+}
+
+.login-link {
+    margin: 20px;
+    padding: 10px;
+    color: white;
+    text-decoration: none;
+    transition: color 250ms;
+}
+
+.login-link:hover {
+    color: grey;
+}
+
+/* 
+--------------------------------------------------
+                  Other Styles
+--------------------------------------------------
+*/
+
+.isDisabled {
+    color: grey !important;
+    pointer-events: none !important;
 }

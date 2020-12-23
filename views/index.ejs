@@ -10,8 +10,8 @@
             <div class="title-bar">
                 <a href="/login">Login</a>
                 <a class="isDisabled" href="/marketplace">Marketplace</a>
-                <a href="/contact">Contact</a>
-                <a href="/about">About</a>   
+                <a class="isDisabled" href="/contact">Contact</a>
+                <a class="isDisabled" href="/about">About</a>   
             </div>
 
             <div id="posts" class="post-bar">
@@ -84,10 +84,8 @@
                         let postparent = document.getElementById('posts')
                         let postdiv = document.createElement('div')
                         postdiv.classList.add('post-container')
-                        postdiv.onmouseover = function (event) {setSlide(index + 1)}
-                        postdiv.onclick = function () {
-                            loadPostContent(post._id)
-                        }
+                        postdiv.onmouseover = function () {setSlide(index + 1)}
+                        postdiv.onclick = function () {loadPostContent(post._id)}
 
                         // For Post URL
                         let postlink = document.createElement('a')

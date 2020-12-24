@@ -218,9 +218,7 @@ app.get('/users/loadall', AdminAuth, (req, res) => {
 
     db.users.find({}, (err, users) => {
 
-        if (err) {return res.end(JSON.stringify({
-            status: "failed"
-        }))}
+        if (err) {return res.end(JSON.stringify({ status: "failed" }))}
 
         return res.end(JSON.stringify({
             status: "success",
@@ -234,12 +232,12 @@ app.get('/users/delete/:username', (req, res) => {
 
     if (typeof req.params.username !== "string") {
         console.log("WARNING: NoSQL injection attempt detected! " + req.socket.address)
-        return res.redirect('/')
+        return res.end(JSON.stringify({ status: 'failed' }))
     }
 
     jwt.verify(req.cookies.login_token, jwtsecret, (err, user) => {
 
-        if (err) {return res.redirect('/')}
+        if (err) {return res.end(JSON.stringify({ status: 'failed' }))}
         if (user.isadmin === true || user.username === req.params.username) {
 
             if (user.username === req.params.username) {
@@ -247,10 +245,9 @@ app.get('/users/delete/:username', (req, res) => {
             }
 
             db.users.remove({ username: req.params.username }, {}, (err) => {
-                if (err) {return res.redirect('/')}
-                if (user.username === req.params.username) {return res.redirect('/logout')}
+                if (err) {return res.end(JSON.stringify({ status: 'failed' }))}
                 console.log("INFO: Removed user: ", req.params.username)
-                res.redirect('/admin')
+                return res.end(JSON.stringify({ status: 'success' }))
             })
 
         }
@@ -267,7 +264,7 @@ app.get('/users/changerole/:username', AdminAuth, (req, res) => {
     }
 
     db.users.findOne({ username: req.params.username }, (err, user) => {
-        if (err) {res.end(JSON.stringify({ status: 'failed' }))}
+        if (err) {return res.end(JSON.stringify({ status: 'failed' }))}
         
         let updateduser = { 
             username: user.username,
@@ -280,7 +277,7 @@ app.get('/users/changerole/:username', AdminAuth, (req, res) => {
         }
         
         db.users.update(user, updateduser, {}, (err) => {
-            if (err) {res.end(JSON.stringify({ status: 'failed' }))}
+            if (err) {return res.end(JSON.stringify({ status: 'failed' }))}
             if (updateduser.isadmin) {
                 console.log("INFO: Changed " + user.username + "'s role to admin.")
             } else {
@@ -289,7 +286,7 @@ app.get('/users/changerole/:username', AdminAuth, (req, res) => {
             
         })
 
-        return res.redirect('/admin')
+        return res.end(JSON.stringify({ status: "success" }))
         
     })
 
@@ -310,7 +307,7 @@ app.post('/users/create', AdminAuth, (req, res) => {
     }
 
     db.users.findOne({ username: req.body.username }, (err, user) => {
-        if (err || user) {return res.redirect('/')}
+        if (err || user) {return res.redirect('/admin')}
 
         const passwordhash = bcrypt.hashSync(req.body.password, saltRounds)
 
@@ -319,7 +316,7 @@ app.post('/users/create', AdminAuth, (req, res) => {
             password: passwordhash,
             isadmin: adminstatus
         }, (err) => {
-            if (err) {return res.redirect('/')}
+            if (err) {return res.redirect('/admin')}
             res.redirect('/admin')
         })
 
@@ -378,44 +375,77 @@ app.post('/posts/edit/:id', AdminAuth, (req, res) => {
 
 })
 
+app.get('/posts/set/:type/:id', AdminAuth, (req, res) => {
+
+    if (typeof req.params.id !== "string" || typeof req.params.type !== "string") {
+        console.log("WARNING: NoSQL injection attempt detected! " + req.socket.address)
+        return res.end(JSON.stringify({ status: "failed" }))
+    }
+
+    if (req.params.type !== "contact" || req.params.type !== "about") {
+        return res.end(JSON.stringify({ status: "failed" }))
+    }
+
+    db.posts.findOne({ _id: req.params.id }, (err, post) => {
+        if (err) {return res.end(JSON.stringify({ status: "failed" }))}
+
+        db.posts.update({ _id: req.params.id }, { $set: { type: req.params.type }}, (err) => {
+            if (err) {return res.end(JSON.stringify({ status: "failed" }))}
+
+            console.log("INFO: Set " + post.name + " as about page.")
+            return res.end(JSON.stringify({ status: "success" }))
+        })
+
+    })
+
+})
+
+app.get('/posts/setcontact/:id', AdminAuth, (req, res) => {
+
+    if (typeof req.params.id !== "string") {
+        console.log("WARNING: NoSQL injection attempt detected! " + req.socket.address)
+        return res.end(JSON.stringify({ status: "failed" }))
+    }
+
+
+
+})
+
 app.get('/posts/delete/:id', AdminAuth, (req, res) => {
 
     if (typeof req.params.id !== "string") {
         console.log("WARNING: NoSQL injection attempt detected! " + req.socket.address)
-        return res.redirect('/')
+        return res.end(JSON.stringify({ status: "failed" }))
     }
 
     db.posts.findOne({ _id: req.params.id }, (err, post) => {
-        if (err) {return res.redirect('/admin')}
+        if (err) {return res.end(JSON.stringify({ status: "failed" }))}
 
         if (post.image !== undefined) {
             fs.unlinkSync(__dirname + '/static/uploads/' + post.image + '.jpg')
         }
 
         db.posts.remove({ _id: req.params.id }, {}, (err) => {
-            if (err) {return res.redirect('/admin')}
+            if (err) {return res.end(JSON.stringify({ status: "failed" }))}
             console.log("INFO: Removed the post: " + post.name)
+            return res.end(JSON.stringify({ status: "success" }))
         })
 
     })
 
-    res.redirect('/admin')
+    return res.end(JSON.stringify({ status: "failed" }))
 })
 
 app.get('/posts/load/:id', (req, res) => {
     
     if (typeof req.params.id !== "string") {
         console.log("WARNING: NoSQL injection attempt detected! " + req.socket.address)
-        return res.send(JSON.stringify({
-            status: "failed"
-        }))
+        return res.end(JSON.stringify({ status: "failed" }))
     }
 
     db.posts.findOne({ _id: req.params.id }, (err, post) => {
 
-        if (err) {return res.send(JSON.stringify({
-            status: "failed"
-        }))}
+        if (err) {return res.end(JSON.stringify({ status: "failed" }))}
 
         if (post) {
             return res.end(JSON.stringify({
@@ -424,7 +454,7 @@ app.get('/posts/load/:id', (req, res) => {
             }))
         }
         
-        return res.send(JSON.stringify({ status: "failed" }))
+        return res.end(JSON.stringify({ status: "failed" }))
     })
 
 })
@@ -432,9 +462,7 @@ app.get('/posts/load/:id', (req, res) => {
 app.get('/posts/loadall', (req, res) => {
     db.posts.find({ type: "post" }, (err, posts) => {
 
-        if (err) {return res.end(JSON.stringify({
-            status: "failed"
-        }))}
+        if (err) {return res.end(JSON.stringify({ status: "failed" }))}
 
         posts.forEach((post) => {
 

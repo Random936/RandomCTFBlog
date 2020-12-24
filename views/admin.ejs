@@ -91,9 +91,33 @@
 
         <script>
 
+            function setPage(postid, row, pagename) {
+                fetch('/posts/set/' + pagename + '/' + postid)
+                    .then(res => res.json())
+                    .then((data) => {
+                        if (data.status == "success") {
+                            row.remove()
+                        }
+                    })
+            }
+
             function selectHiddenTab(currenttabid, currentbuttonid, othertabid) {
                 setSelectedTab(currenttabid, currentbuttonid)
                 setTimeout(function () {setSelectedTab(othertabid, currentbuttonid)}, 500)
+            }
+
+            function deleteDatabaseEntry(apicall, databaserow) {
+                fetch(apicall)
+                databaserow.remove()
+            }
+
+            function changeUserRole(username, adminstatuselement) {
+                fetch('/users/changerole/' + username)
+                if (adminstatuselement.innerText == 'true') {
+                    adminstatuselement.innerText = 'false'
+                } else {
+                    adminstatuselement.innerText = 'true'
+                }
             }
 
             function formatEditForm(url) {
@@ -137,20 +161,6 @@
                     parent.children[i].style.display = "none"
                 }
                 tabelement.style.display = "block"
-            }
-
-            function deleteDatabaseEntry(apicall, databaserow) {
-                fetch(apicall)
-                databaserow.remove()
-            }
-
-            function changeUserRole(username, adminstatuselement) {
-                fetch('/users/changerole/' + username)
-                if (adminstatuselement.innerText == 'true') {
-                    adminstatuselement.innerText = 'false'
-                } else {
-                    adminstatuselement.innerText = 'true'
-                }
             }
 
             function fillUserTable() {

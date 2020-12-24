@@ -1,5 +1,5 @@
-{"username":"admin","password":"$2b$10$xLSEE3.sFzUBKHdfiBYu.OqPT7ACnbg8/Gwq1.aAnL0oUBXokk4s2","isadmin":true,"_id":"jVP0tl3TPYRqGUdG"}
-{"username":"newuser","password":"$2b$10$QyhfNE2x9EvZ3GlxW4bxSOIULXliuxiz3AUCONZG1wnCmuwOJIrWa","isadmin":true,"_id":"xzhgfhtqx6UkYKpU"}
-{"$$deleted":true,"_id":"xzhgfhtqx6UkYKpU"}
-{"username":"member","password":"$2b$10$9qcqr4WHjTlvnNVUcrW56etqSMd4H/9NkOnpsKU5EAenoX8EX1b2i","isadmin":false,"_id":"cq4loGHsZk40Gcv1"}
-{"$$deleted":true,"_id":"cq4loGHsZk40Gcv1"}
+{"username":"admin","password":"$2b$10$AGjdwDuVVfrAlLpzNuEi/OGKH8OCpcVTP8E1G3io4FxhH7/m4ssE.","isadmin":true,"_id":"QGx78RZ3GLXWMDHI"}
+{"username":"dasdsassadsdaasdasd","password":"$2b$10$D9inBeQ3oJZwzLkiXP4Sm.NoR8Cb8nRCCooVVVQszxm1GhA/fDtvC","isadmin":false,"_id":"eLheHvegVOk7tQEP"}
+{"username":"dasdsassadsdaasdasd","password":"$2b$10$D9inBeQ3oJZwzLkiXP4Sm.NoR8Cb8nRCCooVVVQszxm1GhA/fDtvC","isadmin":true,"_id":"eLheHvegVOk7tQEP"}
+{"username":"dasdsassadsdaasdasd","password":"$2b$10$D9inBeQ3oJZwzLkiXP4Sm.NoR8Cb8nRCCooVVVQszxm1GhA/fDtvC","isadmin":false,"_id":"eLheHvegVOk7tQEP"}
+{"$$deleted":true,"_id":"eLheHvegVOk7tQEP"}

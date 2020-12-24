@@ -6,14 +6,19 @@
     <body class="admin-page-body">
 
         <div id="adminTitleBar" class="admin-title-bar">
+            <a id="statistics-button" onclick="setSelectedTab('statistics-tab', 'statistics-button')">Statistics</a>
             <a id="database-button" onclick="setSelectedTab('database-tab', 'database-button')">Database</a>
             <a id="marketplace-button">Marketplace</a>
-            <a id="createpost-button" onclick="setSelectedTab('createpost-tab', 'createpost-button')">Create Post</a>
             <a href="/">Home Page</a>
             <a href="/logout">Logout</a>
         </div>
 
         <div id="adminContainer" class="admin-container">
+
+            <div id="statistics-tab" style="display: none;">
+                <a class="submit-button" onclick="" style="margin-left: 18%; float: left;">Edit About Page</a>
+                <a class="submit-button" onclick="" style="margin-right: 18%; float: right;">Edit Contact Page</a>
+            </div>
 
             <div id="database-tab" style="display: none;">
                 <div class="admin-table-container" style="float: left;">
@@ -25,6 +30,7 @@
                             <th>Delete</th>
                         </tr>
                     </table>
+                    <a onclick="selectHiddenTab('database-tab', 'database-button', 'createuser-tab')" class="admin-table-button-create">Create User</a>
                 </div>
 
                 <div class="admin-table-container" style="float: right;">
@@ -36,50 +42,69 @@
                             <th>Delete</th>
                         </tr>
                     </table>
+                    <a onclick="selectHiddenTab('database-tab', 'database-button', 'createpost-tab')" class="admin-table-button-create">Create Post</a>
                 </div>
             </div>
 
             <div id="createpost-tab" class="admin-create-post-container" style="display: none;">
                 <form action="/posts/create" method="POST" enctype="multipart/form-data">
-                    <input type="text" name="postname" class="admin-create-post-title" style="float: left;" placeholder="Enter your post's title.">
+                    <input type="text" name="postname" class="standard-input" style="float: left;" placeholder="Enter your post's title.">
                     <input type="file" name="image" class="admin-create-post-upload" style="float: right;">
                     <textarea name="postcontent" class="admin-create-post-textarea" rows="6" cols="60"></textarea>
-                    <input type="submit" class="admin-create-post-submit" value="Create Post">
+                    <div style="display: flex; justify-content: space-evenly;">
+                        <input type="submit" class="submit-button" value="Create Post">
+                        <a class="submit-button" onclick="setSelectedTab('createpost-tab', 'database-button')">Cancel</a>
+                    </div>
                 </form>
             </div>
 
             <div id="editpost-tab" class="admin-create-post-container" style="display: none;">
                 <form method="POST" enctype="multipart/form-data">
-                    <input type="text" name="postname" class="admin-create-post-title" style="text-align: center;">
+                    <input type="text" name="postname" class="standard-input" style="text-align: center;">
                     <textarea name="postcontent" class="admin-create-post-textarea" rows="6" cols="60"></textarea>
                     <div style="display: flex; justify-content: space-evenly;">
-                        <input type="submit" class="admin-create-post-submit" value="Finish Editing">
-                        <a class="admin-create-post-submit" onclick="setSelectedTab('editpost-tab', 'database-button')">Cancel</a>
+                        <input type="submit" class="submit-button" value="Finish Editing">
+                        <a class="submit-button" onclick="setSelectedTab('editpost-tab', 'database-button')">Cancel</a>
                     </div>
                 </form>
+            </div>
+
+            <div id="createuser-tab" style="display: none; margin: 20vh;">
+                <div class="create-user-container">
+                    <h2 class="login-form-title" style="text-align: center;">Create User</h2>
+                    <form action="/users/create" method="POST" style="text-align: center;">
+                        <input type="text" name="username" class="standard-input" placeholder="Username"><br>
+                        <input type="password" name="password" class="standard-input" placeholder="Password"><br>
+                        <label class="standard-label">Admin Permissions: <input type="checkbox" name="isadmin" style="transform: scale(3); margin: 20px;"></label><br>
+                        <div>
+                            <input type="submit" class="submit-button" value="Create User">
+                            <a class="submit-button" onclick="setSelectedTab('createuser-tab', 'database-button')">Cancel</a>
+                        </div> 
+                    </form>   
+                </div>
                 
             </div>
+
         </div>
+
+        
 
         <script>
 
-            function formatEditForm(postid) {
-                fetch('/posts/load/' + postid)
+            function selectHiddenTab(currenttabid, currentbuttonid, othertabid) {
+                setSelectedTab(currenttabid, currentbuttonid)
+                setTimeout(function () {setSelectedTab(othertabid, currentbuttonid)}, 500)
+            }
+
+            function formatEditForm(url) {
+                fetch(url)
                     .then(res => res.json())
                     .then((data) => {
                         if (data.status == 'success') {
-                            console.log('success')
-                            let parent = document.getElementById('adminContainer')
-                            let edittab = document.getElementById('editpost-tab')
-                            parent.style.opacity = 1
-
-                            for (let i = 0; i < parent.children.length; i++) {
-                                parent.children[i].style.display = "none"
-                            }
-                            edittab.style.display = "block"
-
+                            selectHiddenTab('database-tab', 'database-button', 'editpost-tab')
+                            document.getElementById('adminContainer').style.opacity = 0
                             document.querySelector('#editpost-tab > form').action = '/posts/edit/' + data.post._id
-                            let posttitle = document.querySelector('#editpost-tab > form > input.admin-create-post-title')
+                            let posttitle = document.querySelector('#editpost-tab > form > input.standard-input')
                             posttitle.value = data.post.name
                             let postcontent = document.querySelector('#editpost-tab > form > textarea')
                             postcontent.textContent = data.post.content
@@ -87,7 +112,7 @@
                         }
 
                     })
-            }
+            }     
 
             function setSelectedTab(tabid, buttonid) {
                 let parent = document.getElementById('adminContainer')
@@ -96,9 +121,11 @@
                 let tabelement = document.getElementById(tabid)
 
                 if (parent.style.opacity == 0) {
-                    for (let i = 0; i < titlebar.children.length; i++) {
-                        titlebar.children[i].classList.add('isDisabled')
-                    } buttonelement.classList.remove('isDisabled')
+                    if (buttonelement) {
+                        for (let i = 0; i < titlebar.children.length; i++) {
+                            titlebar.children[i].classList.add('isDisabled')
+                        } buttonelement.classList.remove('isDisabled')
+                    }
                     parent.style.opacity = 1
                 } else {
                     for (let i = 0; i < titlebar.children.length; i++) {
@@ -110,6 +137,20 @@
                     parent.children[i].style.display = "none"
                 }
                 tabelement.style.display = "block"
+            }
+
+            function deleteDatabaseEntry(apicall, databaserow) {
+                fetch(apicall)
+                databaserow.remove()
+            }
+
+            function changeUserRole(username, adminstatuselement) {
+                fetch('/users/changerole/' + username)
+                if (adminstatuselement.innerText == 'true') {
+                    adminstatuselement.innerText = 'false'
+                } else {
+                    adminstatuselement.innerText = 'true'
+                }
             }
 
             function fillUserTable() {
@@ -134,16 +175,18 @@
                                 // For Change Role Button
                                 let changeroletd = document.createElement('td')
                                 let changerole = document.createElement('a')
-                                changerole.href = '/users/changerole/' + user.username
+                                changerole.onclick = function () {changeUserRole(user.username, isadmintd)}
                                 changerole.innerText = 'Change Role'
+                                changerole.classList.add('admin-table-button')
                                 changeroletd.appendChild(changerole)
                                 row.appendChild(changeroletd)
 
                                 // For Delete Button
                                 let deletebuttontd = document.createElement('td')
                                 let deletebutton = document.createElement('a')
-                                deletebutton.href = '/users/delete/' + user.username
+                                deletebutton.onclick = function() {deleteDatabaseEntry('/users/delete/' + user.username, row)}
                                 deletebutton.innerText = 'Delete'
+                                deletebutton.classList.add('admin-table-button')
                                 deletebuttontd.appendChild(deletebutton)
                                 row.appendChild(deletebuttontd)
 
@@ -177,16 +220,18 @@
                                 // For Edit Button
                                 let editbuttontd = document.createElement('td')
                                 let editbutton = document.createElement('a')
-                                editbutton.onclick = function () {formatEditForm(post._id)}
+                                editbutton.onclick = function () {formatEditForm('/posts/load/' + post._id)}
                                 editbutton.innerText = 'Edit'
+                                editbutton.classList.add('admin-table-button')
                                 editbuttontd.appendChild(editbutton)
                                 row.appendChild(editbuttontd)
 
                                 // For Delete Button
                                 let deletebuttontd = document.createElement('td')
                                 let deletebutton = document.createElement('a')
-                                deletebutton.href = '/posts/delete/' + post._id
+                                deletebutton.onclick = function() {deleteDatabaseEntry('/posts/delete/' + post._id, row)}
                                 deletebutton.innerText = 'Delete'
+                                deletebutton.classList.add('admin-table-button')
                                 deletebuttontd.appendChild(deletebutton)
                                 row.appendChild(deletebuttontd)
 

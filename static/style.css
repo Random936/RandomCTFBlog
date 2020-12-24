@@ -165,10 +165,11 @@ body {
 
     display: none;
 
-    width: 68vw;
-    height: 78vh;
+    width: calc(68vw - 80px);
+    height: calc(78vh - 80px);
     margin-left: 25vw;
     margin-top: 20vh;
+    padding: 40px;
     border-radius: 20px;
 
     background-color: rgba(0, 0, 0, 0.90);
@@ -180,19 +181,20 @@ body {
     direction: rtl;
 }
 
-#fullPostContainer h2 {
-    margin: 40px;
-    font-size: 40px;
-    text-align: center;
+#fullPostContainer * {
     color: white;
     direction: ltr;
+    overflow-wrap: break-word;
+}
+
+#fullPostContainer h2 {
+    margin: 0;
+    font-size: 40px;
+    text-align: center;
 }
 
 #fullPostContainer p {
-    margin: 40px;
-    color: white;
     font-size: x-large;
-    direction: ltr;
 }
 
 /* 
@@ -283,7 +285,9 @@ body {
 }
 
 .admin-table tr th {
-    font-size: x-large;
+    font-size: large;
+    padding-left: 10px;
+    padding-right: 10px;
     background-color: rgb(50, 50, 50);
 }
 
@@ -300,7 +304,7 @@ body {
     background-color:rgb(50, 50, 50);
 }
 
-.admin-table tr a {
+.admin-table-button, .admin-table-button-create {
     display: block;
     border-radius: 5px;
 
@@ -310,7 +314,15 @@ body {
     transition: color 250ms, background-color 1s;
 }
 
-.admin-table tr a:hover {
+.admin-table-button-create {
+    width: 16%;
+    margin-left: 42%;
+    margin-right: 42%;
+    padding: 5px;
+    text-align: center;
+}
+
+.admin-table-button:hover, .admin-table-button-create:hover {
     color: black;
     background-color: white;
 }
@@ -332,17 +344,6 @@ body {
     padding: 15px;
     border-radius: 20px;
     text-align: center;
-}
-
-.admin-create-post-title {
-    width: 49%;
-    padding: 10px;
-    border: 1px;
-    border-radius: 10px;
-
-    font-size: larger;
-    color: white;
-    background-color: rgb(60, 60, 60);
 }
 
 .admin-create-post-upload {
@@ -372,21 +373,7 @@ body {
     background-color: rgb(60, 60, 60);
 }
 
-.admin-create-post-submit {
-    width: 20%;
-    margin: 3vh;
-    padding: 15px;
-    border: 1px;
-    border-radius: 15px;
-    
-    color: white;
-    font-size: large;
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
-    background-color: rgb(46, 95, 230);
-    transition: color 250ms, background-color 1s;
-}
-
-.admin-create-post-submit:hover {
+.submit-button:hover {
     color: black;
     background-color: white;
 }
@@ -420,15 +407,15 @@ body {
 
 .login-input {
     margin: 10px;
-    width: 18vw;
+    width: 18vw !important;
 }
 
 .login-submit {
-    width: 50%;
+    width: 45% !important;
 }
 
 .login-link {
-    margin: 20px;
+    margin: 1vw;
     padding: 10px;
     color: white;
     text-decoration: none;
@@ -444,6 +431,42 @@ body {
                   Other Styles
 --------------------------------------------------
 */
+
+.create-user-container * {
+    margin: 1vh;
+}
+
+.standard-label {
+    color: white;
+    font-size: large;
+}
+
+.standard-input {
+    width: 49%;
+    padding: 10px;
+    border: 1px;
+    border-radius: 10px;
+
+    font-size: larger;
+    color: white;
+    background-color: rgb(60, 60, 60);
+}
+
+.submit-button {
+    width: 20%;
+    margin: 3vh;
+    padding: 15px;
+    border: 1px;
+    border-radius: 15px;
+    
+    color: white;
+    text-align: center;
+    font-size: large;
+    cursor: pointer;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    background-color: rgb(46, 95, 230);
+    transition: color 250ms, background-color 1s;
+}
 
 .isDisabled {
     color: grey !important;

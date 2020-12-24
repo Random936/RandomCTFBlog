@@ -17,21 +17,24 @@ const jwtsecret = "q3HKVf5TG2ez4KSeBlPXWRWQca3B5FNrPF0BHGPF"
 const saltRounds = 10
 
 app.use(express.static('static'))
-app.use(expressFileUpload({
-    safeFileNames: true
-}))
+app.use(expressFileUpload({ safeFileNames: true }))
 app.use(cookieParser())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
+
+app.use(function (req, res, next) {
+    console.log(req.method + ' request from ' + req.socket.remoteAddress + ' to ' + req.url)
+    next()
+})
 
 app.set('view engine', 'ejs')
 
 app.get('/', (req, res) => {
     db.posts.find({}, (err, posts) => {
         if (err) {
-            return res.render('index.ejs', { posts: {}})
+            return res.render('index.ejs')
         } else {
-            return res.render('index.ejs', {posts: posts})
+            return res.render('index.ejs')
         }
     })
 })
@@ -48,7 +51,7 @@ app.get('/login', (req, res) => {
 
 app.post('/login', (req, res) => {
     
-    console.log("Login attempt with username: " + req.body.username + " and password: " + req.body.password)
+    console.log("INFO: Login attempt with username: " + req.body.username + " and password: " + req.body.password)
 
     if (typeof req.body.username !== "string" || typeof req.body.password !== "string") {
         console.log("WARNING: NoSQL injection attempt detected! " + req.socket.address)
@@ -72,10 +75,10 @@ app.post('/login', (req, res) => {
                 res.cookie("login_token", jwtToken, {maxAge: 2592000000})
     
                 if (user.isadmin === true) {
-                    console.log("Admin login successful.\n")
+                    console.log("INFO: Admin login successful.")
                     res.redirect('/admin')
                 } else {
-                    console.log("Member login successful.\n")
+                    console.log("INFO: Member login successful.")
                     res.redirect('/member')
                 }
 
@@ -148,7 +151,7 @@ app.post('/signup', (req, res) => {
                 })
             }
 
-            console.log("Successfully created user." + 
+            console.log("INFO: Successfully created user." + 
             "\tUsername: " + req.body.username +
             "\tPassword: " + req.body.password)
             res.redirect('/login')
@@ -246,7 +249,7 @@ app.get('/users/delete/:username', (req, res) => {
             db.users.remove({ username: req.params.username }, {}, (err) => {
                 if (err) {return res.redirect('/')}
                 if (user.username === req.params.username) {return res.redirect('/logout')}
-                console.log("Removed user: ", req.params.username)
+                console.log("INFO: Removed user: ", req.params.username)
                 res.redirect('/admin')
             })
 
@@ -260,11 +263,11 @@ app.get('/users/changerole/:username', AdminAuth, (req, res) => {
     
     if (typeof req.params.username !== "string") {
         console.log("WARNING: NoSQL injection attempt detected! " + req.socket.address)
-        return res.redirect('/')
+        return res.end(JSON.stringify({ status: 'failed' }))
     }
 
     db.users.findOne({ username: req.params.username }, (err, user) => {
-        if (err) {return res.redirect('/admin')}
+        if (err) {res.end(JSON.stringify({ status: 'failed' }))}
         
         let updateduser = { 
             username: user.username,
@@ -277,11 +280,11 @@ app.get('/users/changerole/:username', AdminAuth, (req, res) => {
         }
         
         db.users.update(user, updateduser, {}, (err) => {
-            if (err) {return res.redirect('/admin')}
+            if (err) {res.end(JSON.stringify({ status: 'failed' }))}
             if (updateduser.isadmin) {
-                console.log("Changed " + user.username + "'s role to admin.")
+                console.log("INFO: Changed " + user.username + "'s role to admin.")
             } else {
-                console.log("Changed " + user.username + "'s role to member.")
+                console.log("INFO: Changed " + user.username + "'s role to member.")
             }
             
         })
@@ -290,6 +293,38 @@ app.get('/users/changerole/:username', AdminAuth, (req, res) => {
         
     })
 
+})
+
+app.post('/users/create', AdminAuth, (req, res) => {
+
+    if (typeof req.body.username !== "string" || typeof req.body.password !== "string") {
+        console.log("WARNING: NoSQL injection attempt detected! " + req.socket.address)
+        return res.redirect('/')
+    }
+
+    let adminstatus
+    if (req.body.isadmin === "on") {
+        adminstatus = true
+    } else {
+        adminstatus = false
+    }
+
+    db.users.findOne({ username: req.body.username }, (err, user) => {
+        if (err || user) {return res.redirect('/')}
+
+        const passwordhash = bcrypt.hashSync(req.body.password, saltRounds)
+
+        db.users.insert({
+            username: req.body.username,
+            password: passwordhash,
+            isadmin: adminstatus
+        }, (err) => {
+            if (err) {return res.redirect('/')}
+            res.redirect('/admin')
+        })
+
+    })
+    
 })
 
 /*
@@ -309,12 +344,13 @@ app.post('/posts/create', AdminAuth, (req, res) => {
     })
 
     db.posts.insert({
+        type: "post",
         name: req.body.postname,
         image: req.files.image.name,
         content: req.body.postcontent,
     }, (err, post) => {
         if (err) {return res.redirect('/admin')}
-        console.log("Created post " + req.body.postname + " with content length " + req.body.postcontent.length)
+        console.log("INFO: Created post " + req.body.postname + " with content length " + req.body.postcontent.length)
         res.redirect('/admin')
     })
 
@@ -328,7 +364,6 @@ app.post('/posts/edit/:id', AdminAuth, (req, res) => {
     }
 
     if (typeof req.body.postname !== "string" || typeof req.body.postcontent !== "string") {
-        console.log(req.body.postname + " " + req.body.postcontent)
         return res.redirect('/')
     }
 
@@ -352,14 +387,16 @@ app.get('/posts/delete/:id', AdminAuth, (req, res) => {
 
     db.posts.findOne({ _id: req.params.id }, (err, post) => {
         if (err) {return res.redirect('/admin')}
+
         if (post.image !== undefined) {
             fs.unlinkSync(__dirname + '/static/uploads/' + post.image + '.jpg')
         }
-    })
 
-    db.posts.remove({ _id: req.params.id }, {}, (err) => {
-        if (err) {return res.redirect('/admin')}
-        console.log("Removed blog post.")
+        db.posts.remove({ _id: req.params.id }, {}, (err) => {
+            if (err) {return res.redirect('/admin')}
+            console.log("INFO: Removed the post: " + post.name)
+        })
+
     })
 
     res.redirect('/admin')
@@ -393,7 +430,7 @@ app.get('/posts/load/:id', (req, res) => {
 })
 
 app.get('/posts/loadall', (req, res) => {
-    db.posts.find({}, (err, posts) => {
+    db.posts.find({ type: "post" }, (err, posts) => {
 
         if (err) {return res.end(JSON.stringify({
             status: "failed"

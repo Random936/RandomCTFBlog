@@ -10,8 +10,8 @@
             <div class="title-bar">
                 <a href="/login">Login</a>
                 <a class="isDisabled" href="/marketplace">Marketplace</a>
-                <a class="isDisabled" href="/contact">Contact</a>
-                <a class="isDisabled" href="/about">About</a>   
+                <a onclick="loadPostContent('/posts/contact')">Contact</a>
+                <a onclick="loadPostContent('/posts/about')">About</a>   
             </div>
 
             <div id="posts" class="post-bar">
@@ -26,12 +26,13 @@
             </div>
         
         </div>
+
         <script>
 
             function setSlide(slideIndex) {
                 
                 let slides = document.getElementsByClassName('slideshow-slide')
-
+                
                 if (slideIndex > slides.length - 1) {
                     slideIndex = 0
                 } else if (slideIndex < 0) {
@@ -47,27 +48,45 @@
 
             }
 
-            function loadPostContent(postid) {
+            function formatPostContainer(post) {
+                console.log(post)
+                let parent = document.getElementById('fullPostContainer')
 
-                fetch('/posts/load/' + postid)
+                parent.innerHTML = ''
+                let posttitle = document.createElement('h2')
+                posttitle.innerText = post.name
+                parent.appendChild(posttitle)
+                
+                let postcontent = document.createElement('p')
+                postcontent.innerHTML = marked(post.content)
+                parent.appendChild(postcontent)
+            }
+
+            function loadPostContent(posturl) {
+
+                fetch(posturl)
                     .then(res => res.json())
                     .then((data) => {
-
+                        console.log(data)
                         if (data.status == 'success') {
                             
                             let parent = document.getElementById('fullPostContainer')
-                            parent.innerHTML = ''
+                            console.log(parent.childElementCount)
 
-                            let posttitle = document.createElement('h2')
-                            posttitle.innerText = data.post.name
-                            parent.appendChild(posttitle)
-                            
-                            console.log(data)
-                            let postcontent = document.createElement('p')
-                            postcontent.innerHTML = marked(data.post.content)
-                            parent.appendChild(postcontent)
+                            if (parent.firstChild.innerText != data.post.name) {
+                                parent.style.opacity = 0
+                                setTimeout(function () {
+                                    formatPostContainer(data.post)
+                                    parent.style.opacity = 1
+                                }, 500)
+                            } else if (parent.style.opacity != 0) {
+                                parent.style.opacity = 0
+                                setTimeout(function () {formatPostContainer(data.post)}, 500)
+                            } else {
+                                parent.style.opacity = 1
+                                formatPostContainer(data.post)
+                            }
 
-                            parent.style.display = "block"
                         }
 
                     })
@@ -78,37 +97,48 @@
 
                 if (data.status == 'success') {
 
-                    data.posts.forEach((post, index) => {
+                    let posts = []
+                    data.posts.forEach((post) => {
+                        if (post.type == "post") {
+                            posts.push(post)
+                        }
+                    })
 
-                        // Create Post Container
-                        let postparent = document.getElementById('posts')
-                        let postdiv = document.createElement('div')
-                        postdiv.classList.add('post-container')
-                        postdiv.onmouseover = function () {setSlide(index + 1)}
-                        postdiv.onclick = function () {loadPostContent(post._id)}
+                    posts.forEach((post, index) => {
 
-                        // For Post URL
-                        let postlink = document.createElement('a')
-                        postlink.innerText = post.name
-                        postdiv.appendChild(postlink)
-                        postdiv.appendChild(document.createElement('br'))
+                        if (post.type == "post") {
+                            console.log(index + 1)
+                            // Create Post Container
+                            let postparent = document.getElementById('posts')
+                            let postdiv = document.createElement('div')
+                            postdiv.classList.add('post-container')
+                            postdiv.onmouseover = function () {setSlide(index + 1)}
+                            postdiv.onclick = function () {loadPostContent('/posts/load/' + post._id)}
 
-                        // For Post Content
-                        let postcontent = document.createElement('p')
-                        postcontent.innerText = post.content
-                        postdiv.appendChild(postcontent)
+                            // For Post URL
+                            let postlink = document.createElement('a')
+                            postlink.innerText = post.name
+                            postdiv.appendChild(postlink)
+                            postdiv.appendChild(document.createElement('br'))
 
-                        // Append the div
-                        postparent.appendChild(postdiv)
+                            // For Post Content
+                            let postcontent = document.createElement('p')
+                            postcontent.innerText = post.content
+                            postdiv.appendChild(postcontent)
 
-                        // Create Slide
-                        let slideparent = document.getElementById('slideshowContainer')
-                        let slidediv = document.createElement('div')
-                        slidediv.classList.add('slideshow-slide')
-                        let slideimage = document.createElement('img')
-                        slideimage.src = '/uploads/' + post.image + '.jpg'
-                        slidediv.appendChild(slideimage)
-                        slideparent.appendChild(slidediv)
+                            // Append the div
+                            postparent.appendChild(postdiv)
+
+                            // Create Slide
+                            let slideparent = document.getElementById('slideshowContainer')
+                            let slidediv = document.createElement('div')
+                            slidediv.classList.add('slideshow-slide')
+                            let slideimage = document.createElement('img')
+                            slideimage.src = '/uploads/' + post.image + '.jpg'
+                            slidediv.appendChild(slideimage)
+                            slideparent.appendChild(slidediv)
+                        }
+                        
                     })
 
                 }

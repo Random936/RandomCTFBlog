@@ -30,13 +30,7 @@ app.use(function (req, res, next) {
 app.set('view engine', 'ejs')
 
 app.get('/', (req, res) => {
-    db.posts.find({}, (err, posts) => {
-        if (err) {
-            return res.render('index.ejs')
-        } else {
-            return res.render('index.ejs')
-        }
-    })
+    res.render('index.ejs')
 })
 
 /*
@@ -82,14 +76,11 @@ app.post('/login', (req, res) => {
                     res.redirect('/member')
                 }
 
-            } else {
-                res.render('login.ejs', { loginmessage: "Invalid username or password." })
             }
 
-        } else {
-            res.render('login.ejs', { loginmessage: "Invalid username or password." })
         }
 
+        res.render('login.ejs', { loginmessage: "Invalid username or password." })
     })
 
 })
@@ -180,16 +171,12 @@ function MemberAuth(req, res, next) {
 
     if (req.cookies.login_token) {
         jwt.verify(req.cookies.login_token, jwtsecret, (err) => {
-            if (err) {
-                return res.redirect('/login')
-            } else {
-                next()
-            }
+            if (err) {return res.redirect('/login')}
+            next()
         })
-    } else {
-        return res.redirect('/login')
     }
 
+    return res.redirect('/login')
 }
 
 function AdminAuth(req, res, next) {
@@ -218,7 +205,7 @@ app.get('/users/loadall', AdminAuth, (req, res) => {
 
     db.users.find({}, (err, users) => {
 
-        if (err) {return res.end(JSON.stringify({ status: "failed" }))}
+        if (err || !users) {return res.end(JSON.stringify({ status: "failed" }))}
 
         return res.end(JSON.stringify({
             status: "success",
@@ -235,25 +222,29 @@ app.get('/users/delete/:username', (req, res) => {
         return res.end(JSON.stringify({ status: 'failed' }))
     }
 
-    jwt.verify(req.cookies.login_token, jwtsecret, (err, user) => {
+    if (req.cookies.login_token) {
 
-        if (err) {return res.end(JSON.stringify({ status: 'failed' }))}
-        if (user.isadmin === true || user.username === req.params.username) {
-
-            if (user.username === req.params.username) {
-                res.clearCookie('login_token')
+        jwt.verify(req.cookies.login_token, jwtsecret, (err, user) => {
+            if (err || !user) {return res.end(JSON.stringify({ status: 'failed' }))}
+    
+            if (user.isadmin === true || user.username === req.params.username) {
+    
+                if (user.username === req.params.username) {
+                    res.clearCookie('login_token')
+                }
+    
+                db.users.remove({ username: req.params.username }, {}, (err) => {
+                    if (err) {return res.end(JSON.stringify({ status: 'failed' }))}
+                    console.log("INFO: Removed user: ", req.params.username)
+                    return res.end(JSON.stringify({ status: 'success' }))
+                })
+    
             }
+    
+        })
 
-            db.users.remove({ username: req.params.username }, {}, (err) => {
-                if (err) {return res.end(JSON.stringify({ status: 'failed' }))}
-                console.log("INFO: Removed user: ", req.params.username)
-                return res.end(JSON.stringify({ status: 'success' }))
-            })
-
-        }
-
-    })
-
+    }
+    return res.end(JSON.stringify({ status: 'failed' }))
 })
 
 app.get('/users/changerole/:username', AdminAuth, (req, res) => {
@@ -264,7 +255,7 @@ app.get('/users/changerole/:username', AdminAuth, (req, res) => {
     }
 
     db.users.findOne({ username: req.params.username }, (err, user) => {
-        if (err) {return res.end(JSON.stringify({ status: 'failed' }))}
+        if (err || !user) {return res.end(JSON.stringify({ status: 'failed' }))}
         
         let updateduser = { 
             username: user.username,
@@ -299,6 +290,11 @@ app.post('/users/create', AdminAuth, (req, res) => {
         return res.redirect('/')
     }
 
+    const username = req.body.username.match(/[a-zA-Z0-9]+/)[0]
+    if (username !== req.body.username) {
+        return res.redirect('/admin')
+    }
+
     let adminstatus
     if (req.body.isadmin === "on") {
         adminstatus = true
@@ -317,6 +313,11 @@ app.post('/users/create', AdminAuth, (req, res) => {
             isadmin: adminstatus
         }, (err) => {
             if (err) {return res.redirect('/admin')}
+
+            console.log("INFO: Successfully created user." + 
+            "\tUsername: " + req.body.username +
+            "\tPassword: " + req.body.password +
+            "\tAdmin Permissions: " + adminstatus)
             res.redirect('/admin')
         })
 
@@ -326,28 +327,32 @@ app.post('/users/create', AdminAuth, (req, res) => {
 
 /*
 --------------------------------------------------
-                Blog API Routes
+            Blog API Routes Management
 --------------------------------------------------
 */
 
 app.post('/posts/create', AdminAuth, (req, res) => {
 
-    if (req.body.postname.length <= 0 || req.body.postcontent.length <= 0 || !req.files) {
+    if (req.body.postname.length <= 0 || req.body.postcontent.length <= 0) {
         return res.redirect('/admin')
     }
 
-    fs.writeFileSync(__dirname + '/static/uploads/' + req.files.image.name + '.jpg', req.files.image.data, (err) => {
-        if (err) {return res.redirect('/admin')}
-    })
+    let imagename = ""
+    if (req.files) {
+        imagename = req.files.image.name
+        fs.writeFileSync(__dirname + '/static/uploads/' + req.files.image.name + '.jpg', req.files.image.data, (err) => {
+            if (err) {return res.redirect('/admin')}
+        })
+    }
 
     db.posts.insert({
         type: "post",
         name: req.body.postname,
-        image: req.files.image.name,
+        image: imagename,
         content: req.body.postcontent,
     }, (err, post) => {
-        if (err) {return res.redirect('/admin')}
-        console.log("INFO: Created post " + req.body.postname + " with content length " + req.body.postcontent.length)
+        if (err || !post) {return res.redirect('/admin')}
+        console.log("INFO: Created post " + post.name + " with content length " + post.content.length)
         res.redirect('/admin')
     })
 
@@ -357,22 +362,25 @@ app.post('/posts/edit/:id', AdminAuth, (req, res) => {
     
     if (typeof req.params.id !== "string") {
         console.log("WARNING: NoSQL injection attempt detected! " + req.socket.address)
-        return res.redirect('/')
+        return res.redirect('/admin')
     }
 
     if (typeof req.body.postname !== "string" || typeof req.body.postcontent !== "string") {
-        return res.redirect('/')
+        return res.redirect('/admin')
     }
 
-    db.posts.update({ _id: req.params.id }, { $set: {
-        name: req.body.postname,
-        content: req.body.postcontent
-    }}, (err) => {
-        if (err) {return res.redirect('/')}
+    db.posts.findOne({ _id: req.params.id }, (err, post) => {
+        if (err || !post) {return res.redirect('/admin')}
+        
+        db.posts.update({ _id: req.params.id }, { $set: {
+            name: req.body.postname,
+            content: req.body.postcontent
+        }}, (err) => {
+            if (err) {return res.redirect('/admin')}
+        })
+
     })
-
     res.redirect('/admin')
-
 })
 
 app.get('/posts/set/:type/:id', AdminAuth, (req, res) => {
@@ -382,12 +390,16 @@ app.get('/posts/set/:type/:id', AdminAuth, (req, res) => {
         return res.end(JSON.stringify({ status: "failed" }))
     }
 
-    if (req.params.type !== "contact" || req.params.type !== "about") {
+    if (req.params.type !== "contact" && req.params.type !== "about") {
         return res.end(JSON.stringify({ status: "failed" }))
     }
 
-    db.posts.findOne({ _id: req.params.id }, (err, post) => {
+    db.posts.update({ type: req.params.type }, { $set: { type: "post" }}, (err) => {
         if (err) {return res.end(JSON.stringify({ status: "failed" }))}
+    })
+
+    db.posts.findOne({ _id: req.params.id }, (err, post) => {
+        if (err || !post) {return res.end(JSON.stringify({ status: "failed" }))}
 
         db.posts.update({ _id: req.params.id }, { $set: { type: req.params.type }}, (err) => {
             if (err) {return res.end(JSON.stringify({ status: "failed" }))}
@@ -400,17 +412,6 @@ app.get('/posts/set/:type/:id', AdminAuth, (req, res) => {
 
 })
 
-app.get('/posts/setcontact/:id', AdminAuth, (req, res) => {
-
-    if (typeof req.params.id !== "string") {
-        console.log("WARNING: NoSQL injection attempt detected! " + req.socket.address)
-        return res.end(JSON.stringify({ status: "failed" }))
-    }
-
-
-
-})
-
 app.get('/posts/delete/:id', AdminAuth, (req, res) => {
 
     if (typeof req.params.id !== "string") {
@@ -419,9 +420,9 @@ app.get('/posts/delete/:id', AdminAuth, (req, res) => {
     }
 
     db.posts.findOne({ _id: req.params.id }, (err, post) => {
-        if (err) {return res.end(JSON.stringify({ status: "failed" }))}
+        if (err || !post) {return res.end(JSON.stringify({ status: "failed" }))}
 
-        if (post.image !== undefined) {
+        if (post.image !== undefined && fs.existsSync(__dirname + '/static/uploads/' + post.image + '.jpg')) {
             fs.unlinkSync(__dirname + '/static/uploads/' + post.image + '.jpg')
         }
 
@@ -436,6 +437,40 @@ app.get('/posts/delete/:id', AdminAuth, (req, res) => {
     return res.end(JSON.stringify({ status: "failed" }))
 })
 
+/*
+--------------------------------------------------
+              Blog API Routes Querys
+--------------------------------------------------
+*/
+
+app.get('/posts/about', (req, res) => {
+
+    db.posts.findOne({ type: "about" }, (err, post) => {
+        if (err || !post) {return res.end(JSON.stringify({ status: "failed" }))}
+
+        return res.end(JSON.stringify({
+            status: "success",
+            post: post
+        }))
+
+    })
+
+})
+
+app.get('/posts/contact', (req, res) => {
+
+    db.posts.findOne({ type: "contact" }, (err, post) => {
+        if (err || !post) {return res.end(JSON.stringify({ status: "failed" }))}
+
+        return res.end(JSON.stringify({
+            status: "success",
+            post: post
+        }))
+
+    })
+
+})
+
 app.get('/posts/load/:id', (req, res) => {
     
     if (typeof req.params.id !== "string") {
@@ -444,8 +479,7 @@ app.get('/posts/load/:id', (req, res) => {
     }
 
     db.posts.findOne({ _id: req.params.id }, (err, post) => {
-
-        if (err) {return res.end(JSON.stringify({ status: "failed" }))}
+        if (err || !post) {return res.end(JSON.stringify({ status: "failed" }))}
 
         if (post) {
             return res.end(JSON.stringify({
@@ -460,15 +494,17 @@ app.get('/posts/load/:id', (req, res) => {
 })
 
 app.get('/posts/loadall', (req, res) => {
-    db.posts.find({ type: "post" }, (err, posts) => {
 
-        if (err) {return res.end(JSON.stringify({ status: "failed" }))}
+    db.posts.find({}, (err, posts) => {
+        if (err || !posts) {return res.end(JSON.stringify({ status: "failed" }))}
 
         posts.forEach((post) => {
 
             post.length = post.content.length
             if (post.content.match(/[^.!?]+[.!?]/g) !== null) {
                 post.content = post.content.match(/[^.!?]+[.!?]/g)[0]
+            } else {
+                post.content = post.content.substring(0, 100)
             }
             
         })

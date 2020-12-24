@@ -6,7 +6,7 @@
     <body class="admin-page-body">
 
         <div id="adminTitleBar" class="admin-title-bar">
-            <a id="statistics-button" onclick="setSelectedTab('statistics-tab', 'statistics-button')">Statistics</a>
+            <a id="pages-button" onclick="setSelectedTab('pages-tab', 'pages-button')">Pages</a>
             <a id="database-button" onclick="setSelectedTab('database-tab', 'database-button')">Database</a>
             <a id="marketplace-button">Marketplace</a>
             <a href="/">Home Page</a>
@@ -15,9 +15,20 @@
 
         <div id="adminContainer" class="admin-container">
 
-            <div id="statistics-tab" style="display: none;">
-                <a class="submit-button" onclick="" style="margin-left: 18%; float: left;">Edit About Page</a>
-                <a class="submit-button" onclick="" style="margin-right: 18%; float: right;">Edit Contact Page</a>
+            <div id="pages-tab" style="display: none;">
+                <div style="display: flex; justify-content: space-evenly;">
+
+                    <a onclick="setPostType('aboutSelect', 'about')" class="submit-button" style="float: left;">Set About</a>
+                    <select id="aboutSelect" class="standard-select">
+                        <option>Select the about page...</option>
+                    </select>
+
+                    <a onclick="setPostType('contactSelect', 'contact')" class="submit-button" style="float: right;">Set Contact</a>
+                    <select id="contactSelect" class="standard-select">
+                        <option>Select the contact page...</option>
+                    </select>
+
+                </div>
             </div>
 
             <div id="database-tab" style="display: none;">
@@ -87,18 +98,13 @@
 
         </div>
 
-        
-
         <script>
 
-            function setPage(postid, row, pagename) {
-                fetch('/posts/set/' + pagename + '/' + postid)
-                    .then(res => res.json())
-                    .then((data) => {
-                        if (data.status == "success") {
-                            row.remove()
-                        }
-                    })
+            function setPostType(selectorid, posttype) {
+                let selectorelem = document.getElementById(selectorid)
+                let selected = selectorelem.options[selectorelem.selectedIndex].value
+                fetch('/posts/set/' + posttype + '/' + selected)
+                location.reload()
             }
 
             function selectHiddenTab(currenttabid, currentbuttonid, othertabid) {
@@ -210,8 +216,11 @@
                 fetch('/posts/loadall')
                     .then(res => res.json())
                     .then((data) => {
+
                         if (data.status == 'success') {
+
                             data.posts.forEach((post) => {
+
                                 let parent = document.getElementById('postsTable')
                                 let row = document.createElement('tr')
                                 
@@ -239,13 +248,29 @@
                                 // For Delete Button
                                 let deletebuttontd = document.createElement('td')
                                 let deletebutton = document.createElement('a')
-                                deletebutton.onclick = function() {deleteDatabaseEntry('/posts/delete/' + post._id, row)}
+                                deletebutton.onclick = function() {
+                                    deleteDatabaseEntry('/posts/delete/' + post._id, row)
+                                    document.querySelectorAll('option[value="' + post._id + '"]').forEach(option => option.remove())
+                                }
                                 deletebutton.innerText = 'Delete'
                                 deletebutton.classList.add('admin-table-button')
                                 deletebuttontd.appendChild(deletebutton)
                                 row.appendChild(deletebuttontd)
 
+                                // Append row to table
                                 parent.appendChild(row)
+
+                                // Append options for page
+                                let aboutoption = document.createElement('option')
+                                aboutoption.value = post._id
+                                aboutoption.innerText = post.name
+                                document.getElementById('aboutSelect').appendChild(aboutoption)
+
+                                let contactoption = document.createElement('option')
+                                contactoption.value = post._id
+                                contactoption.innerText = post.name
+                                document.getElementById('contactSelect').appendChild(contactoption)
+                                
                             })
                         }
                     })

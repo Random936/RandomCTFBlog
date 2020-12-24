@@ -11,11 +11,20 @@ body {
 
 ::-webkit-scrollbar {
     width: 7px;
+    height: 7px;
+}
+
+::-webkit-scrollbar-track {
+    margin: 20px;
 }
 
 ::-webkit-scrollbar-thumb {
     background-color: rgb(65, 65, 65);
     border-radius: 10px;
+}
+
+::-webkit-scrollbar-corner {
+    background-color: transparent;
 }
 
 ::-webkit-file-upload-button {
@@ -136,6 +145,7 @@ body {
     
     transition: background-color 500ms;
     cursor: pointer;
+    overflow-wrap: break-word;
     direction: ltr;
 }
 
@@ -162,8 +172,8 @@ body {
 */
 
 #fullPostContainer {
-
-    display: none;
+    opacity: 0;
+    transition: opacity 500ms;
 
     width: calc(68vw - 80px);
     height: calc(78vh - 80px);
@@ -275,6 +285,8 @@ body {
 
     border-radius: 20px;
     background-color: rgba(26, 26, 26, 0.95);
+    overflow-x: hidden;
+    overflow: scroll;
 }
 
 .admin-table {
@@ -449,6 +461,18 @@ body {
 
     font-size: larger;
     color: white;
+    background-color: rgb(60, 60, 60);
+}
+
+.standard-select {
+    width: 30%;
+    margin: 3vh;
+    padding: 10px;
+    border: transparent;
+    border-radius: 15px;
+    
+    color: white;
+    font-size: large;
     background-color: rgb(60, 60, 60);
 }
 

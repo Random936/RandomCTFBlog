@@ -39,7 +39,6 @@
                     slideIndex = slides.length - 1
                 }
 
-                console.log("Switching slide to: " + slideIndex)
                 for (let i = 0; i < slides.length; i++) {
                     slides[i].classList.remove('slideshow-active')
                 }
@@ -49,7 +48,6 @@
             }
 
             function formatPostContainer(post) {
-                console.log(post)
                 let parent = document.getElementById('fullPostContainer')
 
                 parent.innerHTML = ''
@@ -67,11 +65,9 @@
                 fetch(posturl)
                     .then(res => res.json())
                     .then((data) => {
-                        console.log(data)
                         if (data.status == 'success') {
                             
                             let parent = document.getElementById('fullPostContainer')
-                            console.log(parent.childElementCount)
 
                             if (parent.firstChild.innerText != data.post.name) {
                                 parent.style.opacity = 0
@@ -106,38 +102,35 @@
 
                     posts.forEach((post, index) => {
 
-                        if (post.type == "post") {
-                            console.log(index + 1)
-                            // Create Post Container
-                            let postparent = document.getElementById('posts')
-                            let postdiv = document.createElement('div')
-                            postdiv.classList.add('post-container')
-                            postdiv.onmouseover = function () {setSlide(index + 1)}
-                            postdiv.onclick = function () {loadPostContent('/posts/load/' + post._id)}
+                        // Create Post Container
+                        let postparent = document.getElementById('posts')
+                        let postdiv = document.createElement('div')
+                        postdiv.classList.add('post-container')
+                        postdiv.onmouseover = function () {setSlide(index + 1)}
+                        postdiv.onclick = function () {loadPostContent('/posts/load/' + post._id)}
 
-                            // For Post URL
-                            let postlink = document.createElement('a')
-                            postlink.innerText = post.name
-                            postdiv.appendChild(postlink)
-                            postdiv.appendChild(document.createElement('br'))
+                        // For Post URL
+                        let postlink = document.createElement('a')
+                        postlink.innerText = post.name
+                        postdiv.appendChild(postlink)
+                        postdiv.appendChild(document.createElement('br'))
 
-                            // For Post Content
-                            let postcontent = document.createElement('p')
-                            postcontent.innerText = post.content
-                            postdiv.appendChild(postcontent)
+                        // For Post Content
+                        let postcontent = document.createElement('p')
+                        postcontent.innerText = post.content
+                        postdiv.appendChild(postcontent)
 
-                            // Append the div
-                            postparent.appendChild(postdiv)
+                        // Append the div
+                        postparent.appendChild(postdiv)
 
-                            // Create Slide
-                            let slideparent = document.getElementById('slideshowContainer')
-                            let slidediv = document.createElement('div')
-                            slidediv.classList.add('slideshow-slide')
-                            let slideimage = document.createElement('img')
-                            slideimage.src = '/uploads/' + post.image + '.jpg'
-                            slidediv.appendChild(slideimage)
-                            slideparent.appendChild(slidediv)
-                        }
+                        // Create Slide
+                        let slideparent = document.getElementById('slideshowContainer')
+                        let slidediv = document.createElement('div')
+                        slidediv.classList.add('slideshow-slide')
+                        let slideimage = document.createElement('img')
+                        slideimage.src = '/uploads/' + post.image + '.jpg'
+                        slidediv.appendChild(slideimage)
+                        slideparent.appendChild(slidediv)
                         
                     })
 

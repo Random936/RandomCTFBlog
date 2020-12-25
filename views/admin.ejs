@@ -6,7 +6,7 @@
     <body class="admin-page-body">
 
         <div id="adminTitleBar" class="admin-title-bar">
-            <a id="pages-button" onclick="setSelectedTab('pages-tab', 'pages-button')">Pages</a>
+            <a id="othersettings-button" onclick="setSelectedTab('othersettings-tab', 'othersettings-button')">Other Settings</a>
             <a id="database-button" onclick="setSelectedTab('database-tab', 'database-button')">Database</a>
             <a id="marketplace-button">Marketplace</a>
             <a href="/">Home Page</a>
@@ -15,9 +15,9 @@
 
         <div id="adminContainer" class="admin-container">
 
-            <div id="pages-tab" style="display: none;">
+            <div id="othersettings-tab" style="display: none;">
                 <div style="display: flex; justify-content: space-evenly;">
-
+                    
                     <a onclick="setPostType('aboutSelect', 'about')" class="submit-button" style="float: left;">Set About</a>
                     <select id="aboutSelect" class="standard-select">
                         <option>Select the about page...</option>
@@ -47,8 +47,10 @@
                 <div class="admin-table-container" style="float: right;">
                     <table id="postsTable" class="admin-table">
                         <tr>
-                            <th>Post Title</th>
+                            <th>Title</th>
+                            <th>Type</th>
                             <th>Length</th>
+                            <th>Visibility</th>
                             <th>Edit</th>
                             <th>Delete</th>
                         </tr>
@@ -63,7 +65,7 @@
                     <input type="file" name="image" class="admin-create-post-upload" style="float: right;">
                     <textarea name="postcontent" class="admin-create-post-textarea" rows="6" cols="60"></textarea>
                     <div style="display: flex; justify-content: space-evenly;">
-                        <input type="submit" class="submit-button" value="Create Post">
+                        <input type="submit" class="submit-button" value="Save Post">
                         <a class="submit-button" onclick="setSelectedTab('createpost-tab', 'database-button')">Cancel</a>
                     </div>
                 </form>
@@ -71,10 +73,11 @@
 
             <div id="editpost-tab" class="admin-create-post-container" style="display: none;">
                 <form method="POST" enctype="multipart/form-data">
-                    <input type="text" name="postname" class="standard-input" style="text-align: center;">
+                    <input type="text" name="postname" class="standard-input" style="float: left;" placeholder="Enter your post's title.">
+                    <input type="file" name="image" class="admin-create-post-upload" style="float: right;">
                     <textarea name="postcontent" class="admin-create-post-textarea" rows="6" cols="60"></textarea>
                     <div style="display: flex; justify-content: space-evenly;">
-                        <input type="submit" class="submit-button" value="Finish Editing">
+                        <input type="submit" class="submit-button" value="Apply Changes">
                         <a class="submit-button" onclick="setSelectedTab('editpost-tab', 'database-button')">Cancel</a>
                     </div>
                 </form>
@@ -117,13 +120,40 @@
                 databaserow.remove()
             }
 
+            function changePostVisibility(postid, typetd) {
+                if (typetd.innerText === "private") {
+                    fetch('/posts/set/post/' + postid)
+                        .then(res => res.json())
+                        .then((data) => {
+                            if (data.status == 'success') {
+                                typetd.innerText = "post"
+                            }
+                        })
+                    
+                } else {
+                    fetch('/posts/set/private/' + postid)
+                        .then(res => res.json())
+                        .then((data) => {
+                            if (data.status == 'success') {
+                                typetd.innerText = "private"
+                            }
+                        })
+                }
+            }
+
             function changeUserRole(username, adminstatuselement) {
                 fetch('/users/changerole/' + username)
-                if (adminstatuselement.innerText == 'true') {
-                    adminstatuselement.innerText = 'false'
-                } else {
-                    adminstatuselement.innerText = 'true'
-                }
+                    .then(res => res.json())
+                    .then((data) => {
+                        if (data.status == 'success') {
+                            if (adminstatuselement.innerText == 'true') {
+                                adminstatuselement.innerText = 'false'
+                            } else {
+                                adminstatuselement.innerText = 'true'
+                            }
+                        }
+                    })
+                
             }
 
             function formatEditForm(url) {
@@ -131,14 +161,13 @@
                     .then(res => res.json())
                     .then((data) => {
                         if (data.status == 'success') {
+
                             selectHiddenTab('database-tab', 'database-button', 'editpost-tab')
                             document.getElementById('adminContainer').style.opacity = 0
                             document.querySelector('#editpost-tab > form').action = '/posts/edit/' + data.post._id
-                            let posttitle = document.querySelector('#editpost-tab > form > input.standard-input')
-                            posttitle.value = data.post.name
-                            let postcontent = document.querySelector('#editpost-tab > form > textarea')
-                            postcontent.textContent = data.post.content
-
+                            document.querySelector('#editpost-tab > form > input.standard-input').value = data.post.name
+                            document.querySelector('#editpost-tab > form > textarea').textContent = data.post.content
+                            
                         }
 
                     })
@@ -223,7 +252,7 @@
 
                                 let parent = document.getElementById('postsTable')
                                 let row = document.createElement('tr')
-                                
+
                                 // For Title
                                 let postnametd = document.createElement('td')
                                 let postname = document.createElement('p')
@@ -231,10 +260,24 @@
                                 postnametd.appendChild(postname)
                                 row.appendChild(postnametd)
 
+                                // For Post Type
+                                let typetd = document.createElement('td')
+                                typetd.innerText = post.type
+                                row.appendChild(typetd)
+
                                 // For Length
                                 let lengthtd = document.createElement('td')
                                 lengthtd.innerText = post.length
                                 row.appendChild(lengthtd)
+
+                                // For publish button
+                                let publishtd = document.createElement('td')
+                                let publish = document.createElement('a')
+                                publish.onclick = function () {changePostVisibility(post._id, typetd)}
+                                publish.innerText = 'Change'
+                                publish.classList.add('admin-table-button')
+                                publishtd.appendChild(publish)
+                                row.appendChild(publishtd)
 
                                 // For Edit Button
                                 let editbuttontd = document.createElement('td')

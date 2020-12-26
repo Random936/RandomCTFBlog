@@ -73,14 +73,19 @@
                                 parent.style.opacity = 0
                                 setTimeout(function () {
                                     formatPostContainer(data.post)
+                                    document.title = data.post.name + ' | RandomCTF'
                                     parent.style.opacity = 1
                                 }, 500)
                             } else if (parent.style.opacity != 0) {
                                 parent.style.opacity = 0
-                                setTimeout(function () {formatPostContainer(data.post)}, 500)
+                                setTimeout(function () {
+                                    formatPostContainer(data.post)
+                                    document.title = 'RandomCTF'
+                                }, 500)
                             } else {
                                 parent.style.opacity = 1
                                 formatPostContainer(data.post)
+                                document.title = data.post.name + ' | RandomCTF'
                             }
 
                         }
@@ -149,6 +154,11 @@
 
             window.onload = function () {
                 loadPosts()
+                let searchparams = new URLSearchParams(document.location.search.substring(1))
+                let initialpostid= searchparams.get("post")
+                if (initialpostid) {
+                    loadPostContent('/posts/load/' + initialpostid)
+                }
                 setSlide(0)
             }
         </script>

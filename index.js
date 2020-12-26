@@ -7,13 +7,15 @@ const jwt = require('jsonwebtoken')
 const app = express()
 const Datastore = require('nedb')
 const bcrypt = require('bcrypt')
+const uuid = require('uuid')
 
 let db = {}
 db.users = new Datastore({ filename: 'users.db', autoload: true })
 db.posts = new Datastore({ filename: 'posts.db', autoload: true })
+db.tracking = new Datastore({ filename: 'tracking.db', autoload: true })
 
 // Change before production!
-const jwtsecret = "q3HKVf5TG2ez4KSeBlPXWRWQca3B5FNrPF0BHGPF"
+const jwtsecret = uuid.v4()
 const saltRounds = 10
 
 app.use(express.static('static'))
@@ -555,4 +557,55 @@ app.get('/posts/loadall', (req, res) => {
 
 })
 
-app.listen(80, () => {console.log("Now listening for incoming connections.")})
+/*
+--------------------------------------------------
+                  Tracking API
+--------------------------------------------------
+*/
+
+app.get('/tracking/set', (req, res) => {
+
+    if (typeof req.query.path !== "string") {
+        return res.end(JSON.stringify({status: "failed"}))
+    } else if (!req.cookies.tracking_token) {
+        
+        let tracking_token = uuid.v4()
+        db.tracking.insert({
+            token: tracking_token,
+            paths: [req.query.path]
+        }, (err) => {
+            if (err) {return res.end(JSON.stringify({status: "failed"}))}
+        })
+
+        res.cookie('tracking_token', tracking_token, {maxAge: 31556926000000})
+        req.cookies.tracking_token = tracking_token
+
+    } else if (typeof req.cookies.tracking_token !== "string") {
+        return res.end(JSON.stringify({status: "failed"}))
+    }
+
+    db.tracking.findOne({ token: req.cookies.tracking_token }, (err, record) => {
+        if (err) {return res.end(JSON.stringify({status: "failed"}))}
+
+        if (!record.paths.find(path => path === req.query.path)) {
+            
+            db.tracking.update({ token: req.cookies.tracking_token }, { $push: { paths: req.query.path }}, (err) => {
+                if (err) {
+                    return res.end(JSON.stringify({status: "failed"}))
+                } else {
+                    return res.end(JSON.stringify({status: "success"}))
+                }
+            })
+
+        } else {
+            return res.end(JSON.stringify({status: "failed"}))
+        }
+
+    })
+
+})
+
+app.listen(80, () => {
+    console.log("Now listening for incoming connections.")
+    console.log("JWT Secret set to the UUID: " + jwtsecret)
+})

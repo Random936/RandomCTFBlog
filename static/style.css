@@ -303,11 +303,14 @@ body {
     background-color: rgb(50, 50, 50);
 }
 
-.admin-table tr {
-    border-bottom: 2px solid rgb(50, 50, 50);
-
+.admin-table * {
     color: white;
     font-size: large;
+    text-decoration: none;
+}
+
+.admin-table tr {
+    border-bottom: 2px solid rgb(50, 50, 50);
     background-color: rgb(26, 26, 26);
     transition: background-color 500ms;
 }

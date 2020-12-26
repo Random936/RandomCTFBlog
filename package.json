@@ -12,7 +12,8 @@
     "express-fileupload": "^1.2.0",
     "express-jwt": "^6.0.0",
     "jsonwebtoken": "^8.5.1",
-    "nedb": "^1.8.0"
+    "nedb": "^1.8.0",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {},
   "scripts": {

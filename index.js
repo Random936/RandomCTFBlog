@@ -251,9 +251,13 @@ app.post('/signup', (req, res) => {
         
     } 
     
-    const username = req.body.username.match(/[a-zA-Z0-9]+/)[0]
-    if (username !== req.body.username) {
-        return res.render('signup.ejs', { signupmessage: "Username contains invalid characters."})
+    if (req.body.username.match(/[a-zA-Z0-9]+/)) {
+        const username = req.body.username.match(/[a-zA-Z0-9]+/)[0]
+        if (username !== req.body.username) {
+            return res.redirect('/admin')
+        }
+    } else {
+        return res.redirect('/admin')
     }
 
     db.users.findOne({username: req.body.username}, (err, user) => {
@@ -434,8 +438,12 @@ app.post('/users/create', AdminAuth, (req, res) => {
         return res.redirect('/')
     }
 
-    const username = req.body.username.match(/[a-zA-Z0-9]+/)[0]
-    if (username !== req.body.username) {
+    if (req.body.username.match(/[a-zA-Z0-9]+/)) {
+        const username = req.body.username.match(/[a-zA-Z0-9]+/)[0]
+        if (username !== req.body.username) {
+            return res.redirect('/admin')
+        }
+    } else {
         return res.redirect('/admin')
     }
 

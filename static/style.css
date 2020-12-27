@@ -233,7 +233,7 @@ body {
     margin-right: 3vw;
 
     border-radius: 20px;
-    background-color: rgba(0, 0, 0, 0.90);  
+    background-color: rgba(0, 0, 0, 0.90);
 }
 
 /* 
@@ -306,7 +306,6 @@ body {
 .admin-table * {
     color: white;
     font-size: large;
-    text-decoration: none;
 }
 
 .admin-table tr {

@@ -31,8 +31,139 @@ app.use(function (req, res, next) {
 
 app.set('view engine', 'ejs')
 
+/*
+--------------------------------------------------
+                  Main Paths
+--------------------------------------------------
+*/
+
 app.get('/', (req, res) => {
     res.render('index.ejs')
+})
+
+/*
+app.get('/member', MemberAuth, (req, res) => {
+    res.render('member.ejs')
+})
+*/
+
+app.get('/admin', AdminAuth, (req, res) => {
+    res.render('admin.ejs')
+})
+
+/*
+--------------------------------------------------
+                  Tracking API
+--------------------------------------------------
+*/
+
+function trackUsers(req, res, next) {
+
+    if (typeof req.url !== "string") {
+        return next()
+    } else if (!req.cookies.tracking_token || !uuid.validate(req.cookies.tracking_token)) {
+        
+        let tracking_token = uuid.v4()
+        db.tracking.insert({
+            token: tracking_token,
+            firstvisit: Date.now(),
+            lastvisit: Date.now(),
+            paths: [req.url]
+        }, (err) => {
+            if (err) {return next()}
+        })
+
+        res.cookie('tracking_token', tracking_token, {maxAge: 31556926000000})
+        return next()
+
+    }
+
+    db.tracking.findOne({ token: req.cookies.tracking_token }, (err, record) => {
+        if (err) {
+            return next()
+        } else if (!record) {
+            res.clearCookie('tracking_token')
+            return next()
+        }
+
+        if (!record.paths.includes(req.url)) {
+            
+            db.tracking.update(
+                { token: req.cookies.tracking_token },
+                { $push: { paths: req.url }, $set: { lastvisit: Date.now() }},
+                (err) => {
+                if (err) {
+                    return next()
+                } else {
+                    console.log("INFO: Added " + req.url + " to paths for the UUID: " + record.token)
+                    return next()
+                }
+            })
+
+        } else {
+
+            db.tracking.update(
+                { token: req.cookies.tracking_token },
+                { $set: { lastvisit: Date.now() }},
+                (err) => {
+                if (err) {
+                    return next()
+                } else {
+                    return next()
+                }
+            })
+            
+        }
+
+    })
+
+}
+
+app.get('/tracking/statistics', AdminAuth, (req, res) => {
+    
+    let statistics = {}
+    db.tracking.find({}, (err, records) => {
+        if (err || !records) {return res.end(JSON.stringify({status: "failed"}))}
+        
+        statistics.totalviews = records.length
+        statistics.activeusers = 0
+        statistics.newvisits = [0, 0, 0, 0, 0, 0, 0]
+        statistics.posts = []
+        statistics.postviews = []
+
+        records.forEach((record) => {
+
+            if (record.firstvisit > (Date.now() - 604800000)) {
+                let day
+                for (day = 0; Date.now() - (86400000 * day) < Date.now(); day++)
+                console.log(day)
+                statistics.newvisits[day]++
+            }
+
+            if (record.lastvisit > Date.now() - 604800000) {
+                statistics.activeusers++
+            }
+
+            record.paths.forEach((path) => {
+                if (!statistics.posts.includes(path)) {
+                    statistics.posts.push(path)
+                    statistics.postviews.push(1)
+                } else {
+                    let pathindex = statistics.posts.findIndex(pathinarr => pathinarr === path)
+                    statistics.postviews[pathindex]++
+                }
+            })
+
+        })
+
+        statistics.newvisits.reverse()
+
+        res.end(JSON.stringify({
+            status: "success",
+            statistics: statistics
+        }))
+    })
+
 })
 
 /*
@@ -98,6 +229,7 @@ app.get('/logout', (req, res) => {
 --------------------------------------------------
 */
 
+/*
 app.get('/signup', (req, res) => {
     res.render('signup.ejs', { signupmessage: "" })
 })
@@ -152,14 +284,7 @@ app.post('/signup', (req, res) => {
     })
 
 })
-
-app.get('/member', MemberAuth, (req, res) => {
-    res.render('member.ejs')
-})
-
-app.get('/admin', AdminAuth, (req, res) => {
-    res.render('admin.ejs')
-})
+*/
 
 /*
 --------------------------------------------------
@@ -470,7 +595,7 @@ app.get('/posts/delete/:id', AdminAuth, (req, res) => {
 --------------------------------------------------
 */
 
-app.get('/posts/about', (req, res) => {
+app.get('/posts/about', trackUsers, (req, res) => {
 
     db.posts.findOne({ type: "about" }, (err, post) => {
         if (err || !post) {return res.end(JSON.stringify({ status: "failed" }))}
@@ -484,7 +609,7 @@ app.get('/posts/about', (req, res) => {
 
 })
 
-app.get('/posts/contact', (req, res) => {
+app.get('/posts/contact', trackUsers, (req, res) => {
 
     db.posts.findOne({ type: "contact" }, (err, post) => {
         if (err || !post) {return res.end(JSON.stringify({ status: "failed" }))}
@@ -498,7 +623,7 @@ app.get('/posts/contact', (req, res) => {
 
 })
 
-app.get('/posts/load/:id', (req, res) => {
+app.get('/posts/load/:id', trackUsers, (req, res) => {
     
     if (typeof req.params.id !== "string") {
         console.log("WARNING: NoSQL injection attempt detected! " + req.socket.address)
@@ -552,54 +677,6 @@ app.get('/posts/loadall', (req, res) => {
             status: "success",
             posts: returnedposts
         }))
-
-    })
-
-})
-
-/*
---------------------------------------------------
-                  Tracking API
---------------------------------------------------
-*/
-
-app.get('/tracking/set', (req, res) => {
-
-    if (typeof req.query.path !== "string") {
-        return res.end(JSON.stringify({status: "failed"}))
-    } else if (!req.cookies.tracking_token) {
-        
-        let tracking_token = uuid.v4()
-        db.tracking.insert({
-            token: tracking_token,
-            paths: [req.query.path]
-        }, (err) => {
-            if (err) {return res.end(JSON.stringify({status: "failed"}))}
-        })
-
-        res.cookie('tracking_token', tracking_token, {maxAge: 31556926000000})
-        req.cookies.tracking_token = tracking_token
-
-    } else if (typeof req.cookies.tracking_token !== "string") {
-        return res.end(JSON.stringify({status: "failed"}))
-    }
-
-    db.tracking.findOne({ token: req.cookies.tracking_token }, (err, record) => {
-        if (err) {return res.end(JSON.stringify({status: "failed"}))}
-
-        if (!record.paths.find(path => path === req.query.path)) {
-            
-            db.tracking.update({ token: req.cookies.tracking_token }, { $push: { paths: req.query.path }}, (err) => {
-                if (err) {
-                    return res.end(JSON.stringify({status: "failed"}))
-                } else {
-                    return res.end(JSON.stringify({status: "success"}))
-                }
-            })
-
-        } else {
-            return res.end(JSON.stringify({status: "failed"}))
-        }
 
     })
 

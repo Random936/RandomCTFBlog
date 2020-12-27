@@ -1,6 +1,9 @@
 <html>
     <head>
         <title>RandomCTF</title>
+        <meta name="description" content="A hacking blog with information about new up to date attack vectors.">
+        <meta name="keywords" content="CTF,hacking,cybersecurity,programming,blog">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="style.css">
         <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     </head>
@@ -71,21 +74,24 @@
 
                             if (parent.firstChild.innerText != data.post.name) {
                                 parent.style.opacity = 0
+                                document.title = data.post.name + ' | RandomCTF'
+                                window.history.pushState({'post': data.post._id}, '', '/?post=' + data.post._id)
                                 setTimeout(function () {
                                     formatPostContainer(data.post)
-                                    document.title = data.post.name + ' | RandomCTF'
                                     parent.style.opacity = 1
                                 }, 500)
                             } else if (parent.style.opacity != 0) {
                                 parent.style.opacity = 0
+                                document.title = 'RandomCTF'
+                                window.history.pushState({}, '', '/')
                                 setTimeout(function () {
                                     formatPostContainer(data.post)
-                                    document.title = 'RandomCTF'
                                 }, 500)
                             } else {
                                 parent.style.opacity = 1
-                                formatPostContainer(data.post)
                                 document.title = data.post.name + ' | RandomCTF'
+                                window.history.pushState({'post': data.post._id}, '', '/?post=' + data.post._id)
+                                formatPostContainer(data.post)
                             }
 
                         }

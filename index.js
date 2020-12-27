@@ -37,7 +37,7 @@ app.set('view engine', 'ejs')
 --------------------------------------------------
 */
 
-app.get('/', (req, res) => {
+app.get('/', trackUsers, (req, res) => {
     res.render('index.ejs')
 })
 
@@ -120,7 +120,7 @@ function trackUsers(req, res, next) {
 }
 
 app.get('/tracking/statistics', AdminAuth, (req, res) => {
-    
+
     let statistics = {}
     db.tracking.find({}, (err, records) => {
         if (err || !records) {return res.end(JSON.stringify({status: "failed"}))}
@@ -145,7 +145,7 @@ app.get('/tracking/statistics', AdminAuth, (req, res) => {
             }
 
             record.paths.forEach((path) => {
-                if (!statistics.posts.includes(path)) {
+                if (!statistics.posts.includes(path) && path.includes('/posts/')) {
                     statistics.posts.push(path)
                     statistics.postviews.push(1)
                 } else {

@@ -28,6 +28,11 @@
                     </select>
                 </div>
 
+                <div style="display: flex; justify-content: space-evenly;">
+                    <p id="activeUsers" class="standard-label"></p>
+                    <p id="totalViews" class="standard-label"></p>
+                </div>
+
                 <div style="text-align: center;">
                     <div style="margin: 1%; width: 98%; height: 36%;">
                         <canvas id="totalViewsChart" ></canvas>
@@ -36,33 +41,45 @@
                         <canvas id="postViewsChart"></canvas>
                     </div>
                 </div>
+
+                <div>
+                    <table id="loggingTable" style="margin: 1%; width: 98%;" class="admin-table">
+                        <tr>
+                            <th>Token</th>
+                            <th>Last Visit</th>
+                            <th>First Visit</th>
+                        </tr>
+                    </table>
+                </div>
             </div>
 
             <div id="database-tab" style="display: none;">
-                <div class="admin-table-container" style="float: left;">
-                    <table id="usersTable" class="admin-table">
-                        <tr>
-                            <th>Username</th>
-                            <th>Admin</th>
-                            <th>Change Role</th>
-                            <th>Delete</th>
-                        </tr>
-                    </table>
-                    <a onclick="selectHiddenTab('database-tab', 'database-button', 'createuser-tab')" class="admin-table-button-create">Create User</a>
-                </div>
+                <div style="display: flex; flex-flow: row;">
+                    <div class="admin-table-container" style="float: left;">
+                        <table id="usersTable" class="admin-table">
+                            <tr>
+                                <th>Username</th>
+                                <th>Admin</th>
+                                <th>Change Role</th>
+                                <th>Delete</th>
+                            </tr>
+                        </table>
+                        <a onclick="selectHiddenTab('database-tab', 'database-button', 'createuser-tab')" class="admin-table-button-create">Create User</a>
+                    </div>
 
-                <div class="admin-table-container" style="float: right;">
-                    <table id="postsTable" class="admin-table">
-                        <tr>
-                            <th>Title</th>
-                            <th>Type</th>
-                            <th>Length</th>
-                            <th>Visibility</th>
-                            <th>Edit</th>
-                            <th>Delete</th>
-                        </tr>
-                    </table>
-                    <a onclick="selectHiddenTab('database-tab', 'database-button', 'createpost-tab')" class="admin-table-button-create">Create Post</a>
+                    <div class="admin-table-container" style="float: right;">
+                        <table id="postsTable" class="admin-table">
+                            <tr>
+                                <th>Title</th>
+                                <th>Type</th>
+                                <th>Length</th>
+                                <th>Visibility</th>
+                                <th>Edit</th>
+                                <th>Delete</th>
+                            </tr>
+                        </table>
+                        <a onclick="selectHiddenTab('database-tab', 'database-button', 'createpost-tab')" class="admin-table-button-create">Create Post</a>
+                    </div>
                 </div>
             </div>
 
@@ -124,34 +141,9 @@
                     }]},
                     options: {
                         maintainAspectRatio: false,
-                        responsive: true
                     }
                 })
-            }
 
-            function loadStatistics() {
-                fetch('/tracking/statistics')
-                    .then(res => res.json())
-                    .then((data) => {
-                        if (data.status == 'success') {
-                            // Total new views in the last 7 days
-                            formatChart(
-                                'totalViewsChart',
-                                'line',
-                                'Total Views Over the Past 7 Days',
-                                ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
-                                data.statistics.newvisits
-                            )
-
-                            formatChart(
-                                'postViewsChart',
-                                'bar',
-                                'Views for Each Post',
-                                data.statistics.posts,
-                                data.statistics.postviews
-                            )
-                        }
-                    })
             }
 
             function setPostType(selectorid, posttype) {
@@ -247,6 +239,92 @@
                     parent.children[i].style.display = "none"
                 }
                 tabelement.style.display = "block"
+            }
+
+            function loadStatistics() {
+                fetch('/website/stats')
+                    .then(res => res.json())
+                    .then((data) => {
+                        if (data.status == 'success') {
+                            // For other information
+                            document.getElementById('activeUsers').innerText = 'Active Users: ' + data.statistics.activeusers
+                            document.getElementById('totalViews').innerText = 'Total Views: ' + data.statistics.totalviews
+
+                            // Total new views in the last 7 days
+                            formatChart(
+                                'totalViewsChart',
+                                'line',
+                                'Total Views',
+                                ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+                                data.statistics.newvisits
+                            )
+
+                            // Views for each post
+                            formatChart(
+                                'postViewsChart',
+                                'bar',
+                                'Post Views',
+                                data.statistics.posts,
+                                data.statistics.postviews
+                            )
+                        }
+                    })
+                
+                fetch('/website/loadall')
+                    .then(res => res.json())
+                    .then((data) => {
+                        if (data.status == 'success') {
+                            data.records.forEach((record) => {
+                                let parent = document.getElementById('loggingTable')
+                                let row = document.createElement('tr')
+
+                                // For logging token
+                                let websitetokentd = document.createElement('td')
+                                websitetokentd.innerText = record.token
+                                websitetokentd.onclick = function () {
+                                    if (this.lastChild.style.display === 'none') {
+                                        this.lastChild.style.display = 'flex'
+                                    } else {
+                                        this.lastChild.style.display = 'none'
+                                    }
+                                }
+                                row.appendChild(websitetokentd)
+
+                                // For last visit to site
+                                let lastvisittd = document.createElement('td')
+                                lastvisittd.innerText = Date(record.lastvisit)
+                                row.appendChild(lastvisittd)
+
+                                // For first visit to site
+                                let firstvisittd = document.createElement('td')
+                                firstvisittd.innerText = Date(record.firstvisit)
+                                row.appendChild(firstvisittd)
+
+                                // For more info dropdown
+                                let moreinfodiv = document.createElement('div')
+                                moreinfodiv.style.display = 'none'
+                                moreinfodiv.classList.add('admin-table-dropdown')
+                                websitetokentd.appendChild(moreinfodiv)
+
+                                // For refering link
+                                let referer = document.createElement('a')
+                                referer.innerText = 'Referer: ' + record.referer
+                                moreinfodiv.appendChild(referer)
+
+                                // For viewed paths
+                                let paths = document.createElement('a')
+                                paths.innerText = 'Viewed Paths: ' + record.paths.toString().replaceAll(',', ', ')
+                                moreinfodiv.appendChild(paths)
+
+                                // For user agent
+                                let useragent = document.createElement('a')
+                                useragent.innerText = 'User Agent: ' + record.useragent
+                                moreinfodiv.appendChild(useragent)
+
+                                parent.appendChild(row)
+                            })
+                        }
+                    })
             }
 
             function fillUserTable() {
@@ -374,6 +452,7 @@
             window.onload = function() {
                 fillUserTable()
                 fillPostTable()
+                Chart.defaults.global.defaultFontColor = "#FFFFFF"
                 loadStatistics()
             }
 

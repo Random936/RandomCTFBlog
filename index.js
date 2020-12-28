@@ -1,35 +1,39 @@
 const express = require('express')
+const app = express()
 const expressFileUpload = require('express-fileupload')
 const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
 const fs = require('fs')
 const jwt = require('jsonwebtoken')
-const app = express()
 const Datastore = require('nedb')
 const bcrypt = require('bcrypt')
 const uuid = require('uuid')
+
+// Change before production!
+const websitedomain = 'randomctf.com'
+const portnumber = 80
+const jwtsecret = uuid.v4()
+const saltRounds = 10
 
 let db = {}
 db.users = new Datastore({ filename: 'users.db', autoload: true })
 db.posts = new Datastore({ filename: 'posts.db', autoload: true })
 db.tracking = new Datastore({ filename: 'tracking.db', autoload: true })
 
-// Change before production!
-const jwtsecret = uuid.v4()
-const saltRounds = 10
-
 app.use(express.static('static'))
 app.use(expressFileUpload({ safeFileNames: true }))
 app.use(cookieParser())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
+app.use(trackUsers)
 
 app.use(function (req, res, next) {
-    console.log(req.method + ' request from ' + req.socket.remoteAddress + ' to ' + req.url)
+    console.log(req.method + ' request from ' + req.ip + ' to ' + req.url)
     next()
 })
 
 app.set('view engine', 'ejs')
+app.set('trust proxy', true)
 
 /*
 --------------------------------------------------
@@ -37,7 +41,7 @@ app.set('view engine', 'ejs')
 --------------------------------------------------
 */
 
-app.get('/', trackUsers, (req, res) => {
+app.get('/', (req, res) => {
     res.render('index.ejs')
 })
 
@@ -59,37 +63,46 @@ app.get('/admin', AdminAuth, (req, res) => {
 
 function trackUsers(req, res, next) {
 
-    if (typeof req.url !== "string") {
+    if (typeof req.url !== "string" || typeof req.headers['user-agent'] !== "string") {
         return next()
-    } else if (!req.cookies.tracking_token || !uuid.validate(req.cookies.tracking_token)) {
+    } else if (!req.cookies.logging_token || !uuid.validate(req.cookies.logging_token)) {
         
-        let tracking_token = uuid.v4()
-        db.tracking.insert({
-            token: tracking_token,
+        let logging_token = uuid.v4()
+        let newrecord = {
+            token: logging_token,
             firstvisit: Date.now(),
             lastvisit: Date.now(),
+            useragent: req.headers['user-agent'],
             paths: [req.url]
-        }, (err) => {
+        }
+
+        if (typeof req.headers.referer === 'string' && !req.headers.referer.includes(websitedomain)) {
+            newrecord.referer = req.headers.referer
+        } else {
+            newrecord.referer = ''
+        }
+
+        db.tracking.insert(newrecord, (err) => {
             if (err) {return next()}
         })
 
-        res.cookie('tracking_token', tracking_token, {maxAge: 31556926000000})
+        res.cookie('logging_token', logging_token, {maxAge: 31556926000000})
         return next()
 
     }
 
-    db.tracking.findOne({ token: req.cookies.tracking_token }, (err, record) => {
+    db.tracking.findOne({ token: req.cookies.logging_token }, (err, record) => {
         if (err) {
             return next()
         } else if (!record) {
-            res.clearCookie('tracking_token')
+            res.clearCookie('logging_token')
             return next()
         }
 
         if (!record.paths.includes(req.url)) {
             
             db.tracking.update(
-                { token: req.cookies.tracking_token },
+                { token: req.cookies.logging_token },
                 { $push: { paths: req.url }, $set: { lastvisit: Date.now() }},
                 (err) => {
                 if (err) {
@@ -103,7 +116,7 @@ function trackUsers(req, res, next) {
         } else {
 
             db.tracking.update(
-                { token: req.cookies.tracking_token },
+                { token: req.cookies.logging_token },
                 { $set: { lastvisit: Date.now() }},
                 (err) => {
                 if (err) {
@@ -119,7 +132,20 @@ function trackUsers(req, res, next) {
 
 }
 
-app.get('/tracking/statistics', AdminAuth, (req, res) => {
+app.get('/website/loadall', AdminAuth, (req, res) => {
+    db.tracking.find({}, (err, records) => {
+        if (err || !records) {
+            return res.end(JSON.stringify({status: "failed"}))
+        } else {
+            return res.end(JSON.stringify({
+                status: "success",
+                records: records
+            }))
+        }
+    })
+})
+
+app.get('/website/stats', AdminAuth, (req, res) => {
 
     let statistics = {}
     db.tracking.find({}, (err, records) => {
@@ -145,7 +171,7 @@ app.get('/tracking/statistics', AdminAuth, (req, res) => {
             }
 
             record.paths.forEach((path) => {
-                if (!statistics.posts.includes(path) && path.includes('/posts/')) {
+                if (!statistics.posts.includes(path) && path.match(/\/posts\/(load\/.+|contact|about)/)) {
                     statistics.posts.push(path)
                     statistics.postviews.push(1)
                 } else {
@@ -603,7 +629,7 @@ app.get('/posts/delete/:id', AdminAuth, (req, res) => {
 --------------------------------------------------
 */
 
-app.get('/posts/about', trackUsers, (req, res) => {
+app.get('/posts/about', (req, res) => {
 
     db.posts.findOne({ type: "about" }, (err, post) => {
         if (err || !post) {return res.end(JSON.stringify({ status: "failed" }))}
@@ -617,7 +643,7 @@ app.get('/posts/about', trackUsers, (req, res) => {
 
 })
 
-app.get('/posts/contact', trackUsers, (req, res) => {
+app.get('/posts/contact', (req, res) => {
 
     db.posts.findOne({ type: "contact" }, (err, post) => {
         if (err || !post) {return res.end(JSON.stringify({ status: "failed" }))}
@@ -631,7 +657,7 @@ app.get('/posts/contact', trackUsers, (req, res) => {
 
 })
 
-app.get('/posts/load/:id', trackUsers, (req, res) => {
+app.get('/posts/load/:id', (req, res) => {
     
     if (typeof req.params.id !== "string") {
         console.log("WARNING: NoSQL injection attempt detected! " + req.socket.address)
@@ -690,7 +716,7 @@ app.get('/posts/loadall', (req, res) => {
 
 })
 
-app.listen(80, () => {
+app.listen(portnumber, () => {
     console.log("Now listening for incoming connections.")
     console.log("JWT Secret set to the UUID: " + jwtsecret)
 })

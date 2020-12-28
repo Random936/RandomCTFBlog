@@ -234,6 +234,8 @@ body {
 
     border-radius: 20px;
     background-color: rgba(0, 0, 0, 0.90);
+
+    overflow: auto;
 }
 
 /* 
@@ -339,6 +341,22 @@ body {
 .admin-table-button:hover, .admin-table-button-create:hover {
     color: black;
     background-color: white;
+}
+
+.admin-table-dropdown {
+    margin: 1%;
+    width: 98%;
+    border-radius: 10px;
+
+    display: flex;
+    flex-flow: column;
+
+    text-align: left;
+    background-color: rgb(70, 70, 70);
+}
+
+.admin-table-dropdown * {
+    margin: 2%;
 }
 
 /* 

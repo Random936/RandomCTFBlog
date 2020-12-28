@@ -292,12 +292,12 @@
 
                                 // For last visit to site
                                 let lastvisittd = document.createElement('td')
-                                lastvisittd.innerText = new Date(record.lastvisit)
+                                lastvisittd.innerText = new Date(record.lastvisit).toLocaleString()
                                 row.appendChild(lastvisittd)
 
                                 // For first visit to site
                                 let firstvisittd = document.createElement('td')
-                                firstvisittd.innerText = new Date(record.firstvisit)
+                                firstvisittd.innerText = new Date(record.firstvisit).toLocaleString()
                                 row.appendChild(firstvisittd)
 
                                 // For more info dropdown

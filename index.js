@@ -63,7 +63,7 @@ app.get('/admin', AdminAuth, (req, res) => {
 
 function trackUsers(req, res, next) {
 
-    if (typeof req.url !== "string" || typeof req.headers['user-agent'] !== "string") {
+    if (typeof req.url !== "string" || typeof req.headers['user-agent'] !== "string" || typeof req.ip !== "string") {
         return next()
     } else if (!req.cookies.logging_token || !uuid.validate(req.cookies.logging_token)) {
         
@@ -72,6 +72,7 @@ function trackUsers(req, res, next) {
             token: logging_token,
             firstvisit: Date.now(),
             lastvisit: Date.now(),
+            ip: req.ip,
             useragent: req.headers['user-agent'],
             paths: [req.url]
         }
@@ -134,15 +135,29 @@ function trackUsers(req, res, next) {
 
 app.get('/website/loadall', AdminAuth, (req, res) => {
     db.tracking.find({}, (err, records) => {
-        if (err || !records) {
+        if (err || !records) {return res.end(JSON.stringify({status: "failed"}))}
+            
+        return res.end(JSON.stringify({
+            status: "success",
+            records: records
+        }))
+    })
+})
+
+app.get('/website/delete/:token', AdminAuth, (req, res) => {
+    if (typeof req.params.token !== "string") {
+        return res.end(JSON.stringify({status: "failed"}))
+    }
+
+    db.tracking.remove({ token: req.params.token }, (err) => {
+        if (err) {
             return res.end(JSON.stringify({status: "failed"}))
         } else {
-            return res.end(JSON.stringify({
-                status: "success",
-                records: records
-            }))
+            return res.end(JSON.stringify({status: "success"}))
         }
+
     })
+
 })
 
 app.get('/website/stats', AdminAuth, (req, res) => {
@@ -152,6 +167,7 @@ app.get('/website/stats', AdminAuth, (req, res) => {
         if (err || !records) {return res.end(JSON.stringify({status: "failed"}))}
         
         statistics.totalviews = records.length
+        statistics.userviews = 0
         statistics.activeusers = 0
         statistics.newvisits = [0, 0, 0, 0, 0, 0, 0]
         statistics.posts = []
@@ -159,26 +175,31 @@ app.get('/website/stats', AdminAuth, (req, res) => {
 
         records.forEach((record) => {
 
-            if (record.firstvisit > (Date.now() - 604800000)) {
-                let day
-                for (day = 0; Date.now() - (86400000 * day) < Date.now(); day++)
-                console.log(day)
-                statistics.newvisits[day]++
-            }
+            if (record.firstvisit !== record.lastvisit) {
+                statistics.userviews++
 
-            if (record.lastvisit > Date.now() - 604800000) {
-                statistics.activeusers++
-            }
-
-            record.paths.forEach((path) => {
-                if (!statistics.posts.includes(path) && path.match(/\/posts\/(load\/.+|contact|about)/)) {
-                    statistics.posts.push(path)
-                    statistics.postviews.push(1)
-                } else {
-                    let pathindex = statistics.posts.findIndex(pathinarr => pathinarr === path)
-                    statistics.postviews[pathindex]++
+                if (record.firstvisit > (Date.now() - 604800000)) {
+                    let day
+                    for (day = 0; Date.now() - (86400000 * day) < Date.now(); day++)
+                    console.log(day)
+                    statistics.newvisits[day]++
                 }
-            })
+    
+                if (record.lastvisit > Date.now() - 604800000) {
+                    statistics.activeusers++
+                }
+    
+                record.paths.forEach((path) => {
+                    if (!statistics.posts.includes(path) && path.match(/\/posts\/(load\/.+|contact|about)/)) {
+                        statistics.posts.push(path)
+                        statistics.postviews.push(1)
+                    } else {
+                        let pathindex = statistics.posts.findIndex(pathinarr => pathinarr === path)
+                        statistics.postviews[pathindex]++
+                    }
+                })
+            
+            }
 
         })
 

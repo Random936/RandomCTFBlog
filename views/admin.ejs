@@ -292,12 +292,12 @@
 
                                 // For last visit to site
                                 let lastvisittd = document.createElement('td')
-                                lastvisittd.innerText = Date(record.lastvisit)
+                                lastvisittd.innerText = new Date(record.lastvisit)
                                 row.appendChild(lastvisittd)
 
                                 // For first visit to site
                                 let firstvisittd = document.createElement('td')
-                                firstvisittd.innerText = Date(record.firstvisit)
+                                firstvisittd.innerText = new Date(record.firstvisit)
                                 row.appendChild(firstvisittd)
 
                                 // For more info dropdown

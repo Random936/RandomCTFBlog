@@ -439,7 +439,7 @@ app.get('/users/delete/:username', (req, res) => {
         })
 
     }
-    return res.end(JSON.stringify({ status: 'failed' }))
+    
 })
 
 app.get('/users/changerole/:username', AdminAuth, (req, res) => {
@@ -529,7 +529,28 @@ app.post('/users/create', AdminAuth, (req, res) => {
 --------------------------------------------------
 */
 
+app.post('/posts/upload', AdminAuth, (req, res) => {
+
+    if (req.files) {
+
+        if (req.files.image.mimetype === 'image/jpeg') {
+            let imagename = req.files.image.name.slice(0, -3)
+            if (imagename.length > 0) {
+                fs.writeFileSync(__dirname + '/static/uploads/' + imagename + '.jpg', req.files.image.data)
+            }
+        }
+
+        return res.redirect('/admin')
+    } else {
+        res.redirect('/admin')
+    }
+})
+
 app.post('/posts/create', AdminAuth, (req, res) => {
+
+    if (typeof req.body.postname !== 'string' || typeof req.body.postcontent !== 'string') {
+        return res.redirect('/admin')
+    }
 
     if (req.body.postname.length <= 0 || req.body.postcontent.length <= 0) {
         return res.redirect('/admin')
@@ -537,6 +558,11 @@ app.post('/posts/create', AdminAuth, (req, res) => {
 
     let imagename = ""
     if (req.files) {
+
+        if (typeof req.files.image.name !== 'string') {
+            return res.redirect('admin')
+        }
+        
         imagename = req.files.image.name
         fs.writeFileSync(__dirname + '/static/uploads/' + req.files.image.name + '.jpg', req.files.image.data)
     }
@@ -556,12 +582,8 @@ app.post('/posts/create', AdminAuth, (req, res) => {
 
 app.post('/posts/edit/:id', AdminAuth, (req, res) => {
     
-    if (typeof req.params.id !== "string") {
+    if (typeof req.params.id !== "string" || typeof req.body.postname !== "string" || typeof req.body.postcontent !== "string") {
         console.log("WARNING: NoSQL injection attempt detected! " + req.socket.address)
-        return res.redirect('/admin')
-    }
-
-    if (typeof req.body.postname !== "string" || typeof req.body.postcontent !== "string") {
         return res.redirect('/admin')
     }
 
@@ -641,7 +663,6 @@ app.get('/posts/delete/:id', AdminAuth, (req, res) => {
 
     })
 
-    return res.end(JSON.stringify({ status: "failed" }))
 })
 
 /*

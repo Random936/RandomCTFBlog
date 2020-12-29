@@ -7,8 +7,8 @@
     <body class="admin-page-body">
 
         <div id="adminTitleBar" class="admin-title-bar">
-            <a id="other-button" onclick="setSelectedTab('other-tab', 'other-button')">Other</a>
-            <a id="database-button" onclick="setSelectedTab('database-tab', 'database-button')">Database</a>
+            <a id="statistics-button" onclick="setSelectedTab('statistics-tab', 'statistics-button')">Statistics</a>
+            <a id="management-button" onclick="setSelectedTab('management-tab', 'management-button')">Management</a>
             <a id="marketplace-button">Marketplace</a>
             <a href="/">Home Page</a>
             <a href="/logout">Logout</a>
@@ -16,18 +16,7 @@
 
         <div id="adminContainer" class="admin-container">
 
-            <div id="other-tab" style="display: none;">
-                <div style="display: flex; justify-content: space-evenly;">
-                    <a onclick="setPostType('aboutSelect', 'about')" class="submit-button" style="float: left;">Set About</a>
-                    <select id="aboutSelect" class="standard-select">
-                        <option>Select the about page...</option>
-                    </select>
-                    <a onclick="setPostType('contactSelect', 'contact')" class="submit-button" style="float: right;">Set Contact</a>
-                    <select id="contactSelect" class="standard-select">
-                        <option>Select the contact page...</option>
-                    </select>
-                </div>
-
+            <div id="statistics-tab" style="display: none;">
                 <div style="display: flex; justify-content: space-evenly;">
                     <p id="totalViews" class="standard-label"></p>
                     <p id="userViews" class="standard-label"></p>
@@ -60,7 +49,7 @@
                 </div>
             </div>
 
-            <div id="database-tab" style="display: none;">
+            <div id="management-tab" style="display: none;">
                 <div style="display: flex; flex-flow: row;">
                     <div class="admin-table-container" style="float: left;">
                         <table id="usersTable" class="admin-table">
@@ -71,7 +60,7 @@
                                 <th>Delete</th>
                             </tr>
                         </table>
-                        <a onclick="selectHiddenTab('database-tab', 'database-button', 'createuser-tab')" class="admin-table-button-create">Create User</a>
+                        <a onclick="selectHiddenTab('management-tab', 'management-button', 'createuser-tab')" class="admin-table-button-create">Create User</a>
                     </div>
 
                     <div class="admin-table-container" style="float: right;">
@@ -85,8 +74,27 @@
                                 <th>Delete</th>
                             </tr>
                         </table>
-                        <a onclick="selectHiddenTab('database-tab', 'database-button', 'createpost-tab')" class="admin-table-button-create">Create Post</a>
+                        <div style="display: flex; justify-content: space-evenly;">
+                            <a onclick="selectHiddenTab('management-tab', 'management-button', 'createpost-tab')" class="admin-table-button-create" style="margin-right: 0; margin-left: 0;">Create Post</a>
+                            <a onclick="toggleFileUploadDropdown()" class="admin-table-button-create" style="margin-right: 0; margin-left: 0">Upload Image</a>    
+                        </div>
+                        <div id="fileUploadDropdown" class="admin-table-dropdown" style="display: none; background-color: rgb(50, 50, 50); text-align: center;">
+                            <form action="/posts/upload" method="POST" enctype="multipart/form-data" style="margin: 15px;">
+                                <input type="file" name="image" class="admin-create-post-upload">
+                                <input type="submit" class="submit-button">
+                            </form>
+                        </div>
                     </div>
+                </div>
+                <div style="display: flex; justify-content: space-evenly;">
+                    <a onclick="setPostType('aboutSelect', 'about')" class="submit-button" style="float: left; margin-top: 0; margin-bottom: 0;">Set About</a>
+                    <select id="aboutSelect" class="standard-select" style="margin-top: 0; margin-bottom: 0;">
+                        <option>Select the about page...</option>
+                    </select>
+                    <a onclick="setPostType('contactSelect', 'contact')" class="submit-button" style="float: right; margin-top: 0; margin-bottom: 0;">Set Contact</a>
+                    <select id="contactSelect" class="standard-select" style="margin-top: 0; margin-bottom: 0;">
+                        <option>Select the contact page...</option>
+                    </select>
                 </div>
             </div>
 
@@ -97,7 +105,7 @@
                     <textarea name="postcontent" class="admin-create-post-textarea" rows="6" cols="60"></textarea>
                     <div style="display: flex; justify-content: space-evenly;">
                         <input type="submit" class="submit-button" value="Save Post">
-                        <a class="submit-button" onclick="setSelectedTab('createpost-tab', 'database-button')">Cancel</a>
+                        <a class="submit-button" onclick="setSelectedTab('createpost-tab', 'management-button')">Cancel</a>
                     </div>
                 </form>
             </div>
@@ -109,7 +117,7 @@
                     <textarea name="postcontent" class="admin-create-post-textarea" rows="6" cols="60"></textarea>
                     <div style="display: flex; justify-content: space-evenly;">
                         <input type="submit" class="submit-button" value="Apply Changes">
-                        <a class="submit-button" onclick="setSelectedTab('editpost-tab', 'database-button')">Cancel</a>
+                        <a class="submit-button" onclick="setSelectedTab('editpost-tab', 'management-button')">Cancel</a>
                     </div>
                 </form>
             </div>
@@ -123,7 +131,7 @@
                         <label class="standard-label">Admin Permissions: <input type="checkbox" name="isadmin" style="transform: scale(3); margin: 20px;"></label><br>
                         <div>
                             <input type="submit" class="submit-button" value="Create User">
-                            <a class="submit-button" onclick="setSelectedTab('createuser-tab', 'database-button')">Cancel</a>
+                            <a class="submit-button" onclick="setSelectedTab('createuser-tab', 'management-button')">Cancel</a>
                         </div> 
                     </form>   
                 </div>
@@ -132,6 +140,15 @@
         </div>
 
         <script>
+
+            function toggleFileUploadDropdown() {
+                let uploadelem = document.getElementById('fileUploadDropdown')
+                if (uploadelem.style.display === 'none') {
+                    uploadelem.style.display = 'block'
+                } else {
+                    uploadelem.style.display = 'none'
+                }
+            }
 
             function formatChart(canvasid, graphtype, label, labels, data) {
                 let totalctx = document.getElementById(canvasid).getContext('2d')
@@ -178,12 +195,12 @@
                 setTimeout(function () {setSelectedTab(othertabid, currentbuttonid)}, 500)
             }
 
-            function deleteDatabaseEntry(apicall, databaserow) {
+            function deleteDatabaseEntry(apicall, managementrow) {
                 fetch(apicall)
                     .then(res => res.json())
                     .then((data) => {
                         if (data.status == 'success') {
-                            databaserow.remove()
+                            managementrow.remove()
                         }
                     })
             }
@@ -230,7 +247,7 @@
                     .then((data) => {
                         if (data.status == 'success') {
 
-                            selectHiddenTab('database-tab', 'database-button', 'editpost-tab')
+                            selectHiddenTab('management-tab', 'management-button', 'editpost-tab')
                             document.getElementById('adminContainer').style.opacity = 0
                             document.querySelector('#editpost-tab > form').action = '/posts/edit/' + data.post._id
                             document.querySelector('#editpost-tab > form > input.standard-input').value = data.post.name

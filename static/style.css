@@ -197,6 +197,13 @@ body {
     overflow-wrap: break-word;
 }
 
+#fullPostContainer img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 90%;
+}
+
 #fullPostContainer h2 {
     margin: 0;
     font-size: 40px;
@@ -283,7 +290,7 @@ body {
     margin-right: 1vw;
 
     width: 45vw;
-    height: 80vh;
+    height: 73vh;
 
     border-radius: 20px;
     background-color: rgba(26, 26, 26, 0.95);
@@ -295,7 +302,7 @@ body {
     margin: 15px;
     border-collapse: collapse;
     text-align: center;
-    width: calc(100% - 30px);
+    width: calc(100% - 20px);
 }
 
 .admin-table tr th {
@@ -331,9 +338,9 @@ body {
 }
 
 .admin-table-button-create {
-    width: 16%;
-    margin-left: 42%;
-    margin-right: 42%;
+    width: 5vw;
+    margin-left: calc(50% - 2.5vw);
+    margin-right: calc(50% - 2.5vw);
     padding: 5px;
     text-align: center;
 }

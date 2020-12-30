@@ -1,4 +1,4 @@
-<html>
+<html lang="en">
     <head>
         <title>RandomCTF</title>
         <meta name="description" content="A hacking blog with information about new up to date attack vectors.">
@@ -117,6 +117,7 @@
                         slidediv.classList.add('slideshow-slide')
                         let slideimage = document.createElement('img')
                         slideimage.src = '/uploads/' + post.image + '.jpg'
+                        slideimage.alt = ''
                         slidediv.appendChild(slideimage)
                         slideparent.appendChild(slidediv)
                         
@@ -149,7 +150,7 @@
 
             <div class="title-bar">
                 <a href="/login">Login</a>
-                <a class="isDisabled" href="/marketplace">Marketplace</a>
+                <a class="isDisabled">Marketplace</a>
                 <a onclick="loadPostContent('/posts/contact')">Contact</a>
                 <a onclick="loadPostContent('/posts/about')">About</a>   
             </div>
@@ -162,7 +163,7 @@
             </div>
 
             <div class="slideshow-slide slideshow-active">
-                <img src="defaultbackground.jpg">
+                <img src="defaultbackground.jpg" alt="">
             </div>
         
         </div> 

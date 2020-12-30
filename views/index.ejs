@@ -7,28 +7,6 @@
         <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     </head>
     <body>
-        <div id="slideshowContainer">
-
-            <div class="title-bar">
-                <a href="/login">Login</a>
-                <a class="isDisabled" href="/marketplace">Marketplace</a>
-                <a onclick="loadPostContent('/posts/contact')">Contact</a>
-                <a onclick="loadPostContent('/posts/about')">About</a>   
-            </div>
-
-            <div id="posts" class="post-bar">
-                <h1 class="post-bar-title">Random<br>CTF</h1>
-            </div>
-
-            <div id="fullPostContainer">
-            </div>
-
-            <div class="slideshow-slide slideshow-active">
-                <img src="defaultbackground.jpg">
-            </div>
-        
-        </div>
-
         <script>
 
             function setSlide(slideIndex) {
@@ -167,5 +145,26 @@
                 setSlide(0)
             }
         </script>
+        <div id="slideshowContainer">
+
+            <div class="title-bar">
+                <a href="/login">Login</a>
+                <a class="isDisabled" href="/marketplace">Marketplace</a>
+                <a onclick="loadPostContent('/posts/contact')">Contact</a>
+                <a onclick="loadPostContent('/posts/about')">About</a>   
+            </div>
+
+            <div id="posts" class="post-bar">
+                <h1 class="post-bar-title">Random<br>CTF</h1>
+            </div>
+
+            <div id="fullPostContainer">
+            </div>
+
+            <div class="slideshow-slide slideshow-active">
+                <img src="defaultbackground.jpg">
+            </div>
+        
+        </div> 
     </body>
 </html>

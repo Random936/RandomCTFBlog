@@ -11,7 +11,7 @@ const uuid = require('uuid')
 
 // Change before production!
 const websitedomain = 'randomctf.com'
-const portnumber = 80
+const portnumber = 3000
 const jwtsecret = uuid.v4()
 const saltRounds = 10
 

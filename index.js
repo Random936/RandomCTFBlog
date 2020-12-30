@@ -45,12 +45,6 @@ app.get('/', (req, res) => {
     res.render('index.ejs')
 })
 
-/*
-app.get('/member', MemberAuth, (req, res) => {
-    res.render('member.ejs')
-})
-*/
-
 app.get('/admin', AdminAuth, (req, res) => {
     res.render('admin.ejs')
 })
@@ -70,6 +64,7 @@ function trackUsers(req, res, next) {
         let logging_token = uuid.v4()
         let newrecord = {
             token: logging_token,
+            user: false,
             firstvisit: Date.now(),
             lastvisit: Date.now(),
             ip: req.ip,
@@ -104,7 +99,7 @@ function trackUsers(req, res, next) {
             
             db.tracking.update(
                 { token: req.cookies.logging_token },
-                { $push: { paths: req.url }, $set: { lastvisit: Date.now() }},
+                { $push: { paths: req.url }, $set: { lastvisit: Date.now(), user: true }},
                 (err) => {
                 if (err) {
                     return next()
@@ -133,14 +128,49 @@ function trackUsers(req, res, next) {
 
 }
 
-app.get('/website/loadall', AdminAuth, (req, res) => {
-    db.tracking.find({}, (err, records) => {
+app.get('/website/load/:selector', AdminAuth, (req, res) => {
+
+    if (typeof req.params.selector !== "string") {
+        return res.end(JSON.stringify({status: "failed"}))
+    }
+
+    let query
+    if (uuid.validate(req.params.selector)) {
+        query = { token: req.params.selector }
+    } else {
+        switch (req.params.selector) {
+            case "all":
+                query = {}
+                break
+            case "bots":
+                query = { user: false }
+                break
+            case "users":
+                query = { user: true }
+                break
+            default:
+                return res.end(JSON.stringify({status: "failed"}))
+        }
+    }   
+
+    db.tracking.find(query, (err, records) => {
         if (err || !records) {return res.end(JSON.stringify({status: "failed"}))}
             
         return res.end(JSON.stringify({
             status: "success",
             records: records
         }))
+    })
+})
+
+app.get('/website/deletebots', AdminAuth, (req, res) => {
+    db.tracking.remove({ user: false }, { multi: true }, (err, removed) => {
+        if (err) {
+            return res.end(JSON.stringify({status: "failed"}))
+        } else {
+            console.log("INFO: Removed " + removed + " suspected bot token entries.")
+            return res.end(JSON.stringify({status: "success"}))
+        }
     })
 })
 
@@ -153,6 +183,7 @@ app.get('/website/delete/:token', AdminAuth, (req, res) => {
         if (err) {
             return res.end(JSON.stringify({status: "failed"}))
         } else {
+            
             return res.end(JSON.stringify({status: "success"}))
         }
 
@@ -175,7 +206,7 @@ app.get('/website/stats', AdminAuth, (req, res) => {
 
         records.forEach((record) => {
 
-            if (record.firstvisit !== record.lastvisit) {
+            if (record.user) {
                 statistics.userviews++
 
                 if (record.firstvisit > (Date.now() - 604800000)) {
@@ -269,73 +300,6 @@ app.get('/logout', (req, res) => {
     res.clearCookie('login_token')
     res.redirect('/login')
 })
-
-/*
---------------------------------------------------
-            Sign Up Routes & Logic
---------------------------------------------------
-*/
-
-/*
-app.get('/signup', (req, res) => {
-    res.render('signup.ejs', { signupmessage: "" })
-})
-
-app.post('/signup', (req, res) => {
-
-    if (typeof req.body.username !== "string" || typeof req.body.password !== "string") {
-
-        console.log("WARNING: NoSQL injection attempt detected! " + req.socket.address)
-        return res.render('signup.ejs', { signupmessage: "An unknown error occured."})
-
-    } else if (req.body.password !== req.body.confpass) {
-
-        return res.render('signup.ejs', { signupmessage: "Passwords did not match."})
-
-    } else if (req.body.username.length <= 0 || req.body.password.length <= 8) {
-
-        return res.render('signup.ejs', { signupmessage: "Password must be at least 8 characters long."})
-        
-    } 
-    
-    if (req.body.username.match(/[a-zA-Z0-9]+/)) {
-        const username = req.body.username.match(/[a-zA-Z0-9]+/)[0]
-        if (username !== req.body.username) {
-            return res.redirect('/admin')
-        }
-    } else {
-        return res.redirect('/admin')
-    }
-
-    db.users.findOne({username: req.body.username}, (err, user) => {
-        if (err || user) {
-            return res.render('signup.ejs', { 
-                signupmessage: "A user with that username already exists."
-            })
-        }
-
-        const passwordhash = bcrypt.hashSync(req.body.password, saltRounds)
-
-        db.users.insert({ 
-            username: req.body.username,
-            password: passwordhash,
-            isadmin: false
-        },(err) => {
-            if (err) {
-                return res.render('signup.ejs', { 
-                    signupmessage: "An error occured when creating the user."
-                })
-            }
-
-            console.log("INFO: Successfully created user with username: " + req.body.username)
-            res.redirect('/login')
-
-        })
-
-    })
-
-})
-*/
 
 /*
 --------------------------------------------------

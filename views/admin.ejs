@@ -3,8 +3,518 @@
         <title>Administration</title>
         <link rel="stylesheet" href="style.css">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
+
+        
+
     </head>
     <body class="admin-page-body">
+
+        <script>
+
+            /*
+            --------------------------------------------------
+                            Other Usage
+            --------------------------------------------------
+            */
+            
+            function selectHiddenTab(currenttabid, currentbuttonid, othertabid) {
+                setSelectedTab(currenttabid, currentbuttonid)
+                setTimeout(function () {setSelectedTab(othertabid, currentbuttonid)}, 500)
+            }
+            
+            function setSelectedTab(tabid, buttonid) {
+                let parent = document.getElementById('adminContainer')
+                let titlebar = document.getElementById('adminTitleBar')
+                let buttonelement = document.getElementById(buttonid)
+                let tabelement = document.getElementById(tabid)
+            
+                if (parent.style.opacity == 0) {
+                    if (buttonelement) {
+                        for (let i = 0; i < titlebar.children.length; i++) {
+                            titlebar.children[i].classList.add('isDisabled')
+                        } buttonelement.classList.remove('isDisabled')
+                    }
+                    parent.style.opacity = 1
+                } else {
+                    for (let i = 0; i < titlebar.children.length; i++) {
+                        titlebar.children[i].classList.remove('isDisabled')
+                    } parent.style.opacity = 0
+                }
+            
+                for (let i = 0; i < parent.children.length; i++) {
+                    parent.children[i].style.display = "none"
+                }
+                tabelement.style.display = "block"
+            }
+            
+            function deleteDatabaseEntry(apicall, managementrow) {
+                fetch(apicall)
+                    .then(res => res.json())
+                    .then((data) => {
+                        if (data.status == 'success') {
+                            managementrow.remove()
+                        }
+                    })
+            }
+            
+            /*
+            --------------------------------------------------
+                            Statistics Tab
+            --------------------------------------------------
+            */
+            
+            
+            function formatChart(canvasid, graphtype, label, labels, data) {
+                let totalctx = document.getElementById(canvasid).getContext('2d')
+                let totalchart = new Chart(totalctx, {
+                    type: graphtype,
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                        label: label,
+                        data: data,
+                        borderColor: 'rgb(46, 95, 230)',
+                        borderWidth: 4
+                    }]},
+                    options: {
+                        maintainAspectRatio: false,
+                    }
+                })
+            }
+            
+            function toggleBotFilter() {
+                let botrows = document.querySelectorAll('.table-bot-row')
+                if (botrows.length > 0) {
+                    botrows.forEach((row) => {
+                        row.remove()
+                    })
+                } else {
+                    fetch('/website/load/bots')
+                        .then(res => res.json())
+                        .then((data) => {
+                            if (data.status == 'success') {
+                                formatStatisticsTable(data.records)
+                                delegateStatisticsEvents()
+                            }
+                        })
+                }
+                
+            }
+            
+            function deleteAllBots() {
+                fetch('/website/deletebots')
+                    .then(res => res.json())
+                    .then((data) => {
+                        if (data.status = 'success') {
+                            toggleBotFilter()
+                        }
+                    })
+            }
+            
+            function firstVisitSortFunction() {
+                let parent = document.getElementById('loggingTable').parentNode
+                let loggingtableClone = document.getElementById('loggingTable').cloneNode(true)
+                let childarray = []
+            
+                for (let i = 0; i < loggingtableClone.children.length; i++) {
+                    if (loggingtableClone.children[i].nodeName === "TR") {
+                        childarray.push(loggingtableClone.children[i])
+                    }
+                }
+            
+                childarray = childarray.sort(function (a, b) {
+                    let dateA = Date.parse(a.children[2].innerText)
+                    let dateB = Date.parse(b.children[2].innerText)
+                    if (dateA < dateB) {
+                        return 1
+                    }
+                    if (dateA > dateB) {
+                        return -1
+                    }
+                    return 0
+                })
+            
+                childarray.unshift(loggingtableClone.children[0])
+                let loggingtable = document.getElementById('loggingTable')
+                loggingtable.innerHTML = ''
+                childarray.forEach(child => loggingtable.appendChild(child))
+                delegateStatisticsEvents()
+            
+            }
+            
+            function lastVisitSortFunction() {
+                let parent = document.getElementById('loggingTable').parentNode
+                let loggingtableClone = document.getElementById('loggingTable').cloneNode(true)
+                let childarray = []
+            
+                for (let i = 0; i < loggingtableClone.children.length; i++) {
+                    if (loggingtableClone.children[i].nodeName === "TR") {
+                        childarray.push(loggingtableClone.children[i])
+                    }
+                }
+            
+                childarray = childarray.sort(function (a, b) {
+                    let dateA = Date.parse(a.children[3].innerText)
+                    let dateB = Date.parse(b.children[3].innerText)
+                    if (dateA < dateB) {
+                        return 1
+                    }
+                    if (dateA > dateB) {
+                        return -1
+                    }
+                    return 0
+                })
+            
+                childarray.unshift(loggingtableClone.children[0])
+                let loggingtable = document.getElementById('loggingTable')
+                loggingtable.innerHTML = ''
+                childarray.forEach(child => loggingtable.appendChild(child))
+                delegateStatisticsEvents()
+            }
+            
+            function delegateStatisticsEvents() {
+                let loggingtable = document.getElementById('loggingTable')
+                for (let i = 1; i < loggingtable.children.length; i++) {
+                    let row = loggingtable.children[i]
+
+                    // For token click event
+                    let websitetoken = row.children[0].children[0]
+                    websitetoken.onclick = function () {
+                        if (this.parentNode.lastChild.style.display === 'none') {
+                            this.parentNode.lastChild.style.display = 'flex'
+                        } else {
+                            this.parentNode.lastChild.style.display = 'none'
+                        }
+                    }
+
+                    row.children[4].children[0].onclick = function () {deleteDatabaseEntry('/website/delete/' + websitetoken.innerText, row)}
+                    
+                }
+            }
+
+            function formatStatisticsTable(records) {
+            
+                records.forEach((record) => {
+                    let parent = document.getElementById('loggingTable')
+                    let row = document.createElement('tr')
+            
+                    // For logging token
+                    let websitetokentd = document.createElement('td')
+                    let websitetoken = document.createElement('a')
+                    websitetoken.innerText = record.token
+                    websitetoken.classList.add('admin-table-button')
+                    websitetokentd.appendChild(websitetoken)
+                    row.appendChild(websitetokentd)
+            
+                    // For record type
+                    let typetd = document.createElement('td')
+                    if (record.user === true) {
+                        typetd.innerText = 'User'
+                    } else {
+                        row.classList.add('table-bot-row')
+                        typetd.innerText = 'Bot'
+                    }
+                    row.appendChild(typetd)
+            
+                    // For first visit to site
+                    let firstvisittd = document.createElement('td')
+                    firstvisittd.innerText = new Date(record.firstvisit).toLocaleString()
+                    row.appendChild(firstvisittd)
+            
+                    // For last visit to site
+                    let lastvisittd = document.createElement('td')
+                    lastvisittd.innerText = new Date(record.lastvisit).toLocaleString()
+                    row.appendChild(lastvisittd)
+            
+                    // For delete button
+                    let deletebuttontd = document.createElement('td')
+                    let deletebutton = document.createElement('a')
+                    deletebutton.innerText = 'Delete'
+                    deletebutton.classList.add('admin-table-button')
+                    deletebuttontd.appendChild(deletebutton)
+                    row.appendChild(deletebuttontd)
+            
+                    // For more info dropdown
+                    let moreinfodiv = document.createElement('div')
+                    moreinfodiv.style.display = 'none'
+                    moreinfodiv.classList.add('admin-table-dropdown')
+                    websitetokentd.appendChild(moreinfodiv)
+            
+                    // For ip address
+                    let ipaddress = document.createElement('p')
+                    ipaddress.innerText = 'IP Address: ' + record.ip
+                    moreinfodiv.appendChild(ipaddress)
+            
+                    // For refering link
+                    let referer = document.createElement('p')
+                    referer.innerText = 'Referer: ' + record.referer
+                    moreinfodiv.appendChild(referer)
+            
+                    // For viewed paths
+                    let paths = document.createElement('p')
+                    paths.innerText = 'Viewed Paths: ' + record.paths.toString().replaceAll(',', ', ')
+                    moreinfodiv.appendChild(paths)
+            
+                    // For user agent
+                    let useragent = document.createElement('p')
+                    useragent.innerText = 'User Agent: ' + record.useragent
+                    moreinfodiv.appendChild(useragent)
+            
+                    parent.appendChild(row)
+                })
+            }
+            
+            function loadStatistics() {
+                fetch('/website/stats')
+                    .then(res => res.json())
+                    .then((data) => {
+                        if (data.status == 'success') {
+                            // For other information
+                            document.getElementById('totalViews').innerText = 'Total Views: ' + data.statistics.totalviews
+                            document.getElementById('userViews').innerText = 'User Views: ' + data.statistics.userviews
+                            document.getElementById('activeUsers').innerText = 'Active Users: ' + data.statistics.activeusers
+            
+                            // Total new views in the last 7 days
+                            formatChart(
+                                'userViewsChart',
+                                'line',
+                                'Human Views',
+                                ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+                                data.statistics.newvisits
+                            )
+            
+                            // Views for each post
+                            formatChart(
+                                'postViewsChart',
+                                'bar',
+                                'Post Views',
+                                data.statistics.posts,
+                                data.statistics.postviews
+                            )
+                        }
+                    })
+                
+                fetch('/website/load/users')
+                    .then(res => res.json())
+                    .then((data) => {
+                        if (data.status == 'success') {
+                            formatStatisticsTable(data.records)
+                            delegateStatisticsEvents()
+                        }
+                    })
+            }
+            
+            /*
+            --------------------------------------------------
+                        Management Tab | Users
+            --------------------------------------------------
+            */
+            
+            function changeUserRole(username, adminstatuselement) {
+                fetch('/users/changerole/' + username)
+                    .then(res => res.json())
+                    .then((data) => {
+                        if (data.status == 'success') {
+                            if (adminstatuselement.innerText == 'true') {
+                                adminstatuselement.innerText = 'false'
+                            } else {
+                                adminstatuselement.innerText = 'true'
+                            }
+                        }
+                    })
+                
+            }
+            
+            function fillUserTable() {
+                fetch('/users/loadall')
+                    .then(res => res.json())
+                    .then((data) => {
+                        if (data.status == 'success') {
+                            data.users.forEach((user) => {
+                                let parent = document.getElementById('usersTable')
+                                let row = document.createElement('tr')
+            
+                                // For Username
+                                let usernametd = document.createElement('td')
+                                usernametd.innerText = user.username
+                                row.appendChild(usernametd)
+            
+                                // For Admin Status
+                                let isadmintd = document.createElement('td')
+                                isadmintd.innerText = user.isadmin
+                                row.appendChild(isadmintd)
+            
+                                // For Change Role Button
+                                let changeroletd = document.createElement('td')
+                                let changerole = document.createElement('a')
+                                changerole.onclick = function () {changeUserRole(user.username, isadmintd)}
+                                changerole.innerText = 'Change Role'
+                                changerole.classList.add('admin-table-button')
+                                changeroletd.appendChild(changerole)
+                                row.appendChild(changeroletd)
+            
+                                // For Delete Button
+                                let deletebuttontd = document.createElement('td')
+                                let deletebutton = document.createElement('a')
+                                deletebutton.onclick = function() {deleteDatabaseEntry('/users/delete/' + user.username, row)}
+                                deletebutton.innerText = 'Delete'
+                                deletebutton.classList.add('admin-table-button')
+                                deletebuttontd.appendChild(deletebutton)
+                                row.appendChild(deletebuttontd)
+            
+                                parent.appendChild(row)
+                            })
+                        }
+                    })
+            }
+            
+            /*
+            --------------------------------------------------
+                        Management Tab | Posts
+            --------------------------------------------------
+            */
+            
+            function setPostType(selectorid, posttype) {
+                let selectorelem = document.getElementById(selectorid)
+                let selected = selectorelem.options[selectorelem.selectedIndex].value
+                fetch('/posts/set/' + posttype + '/' + selected)
+                location.reload()
+            }
+            
+            function changePostVisibility(postid, typetd) {
+                if (typetd.innerText === "private") {
+                    fetch('/posts/set/post/' + postid)
+                        .then(res => res.json())
+                        .then((data) => {
+                            if (data.status == 'success') {
+                                typetd.innerText = "post"
+                            }
+                        })
+                    
+                } else {
+                    fetch('/posts/set/private/' + postid)
+                        .then(res => res.json())
+                        .then((data) => {
+                            if (data.status == 'success') {
+                                typetd.innerText = "private"
+                            }
+                        })
+                }
+            }
+            
+            function toggleFileUploadDropdown() {
+                let uploadelem = document.getElementById('fileUploadDropdown')
+                if (uploadelem.style.display === 'none') {
+                    uploadelem.style.display = 'block'
+                } else {
+                    uploadelem.style.display = 'none'
+                }
+            }
+            
+            function formatEditForm(url) {
+                fetch(url)
+                    .then(res => res.json())
+                    .then((data) => {
+                        if (data.status == 'success') {
+            
+                            selectHiddenTab('management-tab', 'management-button', 'editpost-tab')
+                            document.getElementById('adminContainer').style.opacity = 0
+                            document.querySelector('#editpost-tab > form').action = '/posts/edit/' + data.post._id
+                            document.querySelector('#editpost-tab > form > input.standard-input').value = data.post.name
+                            document.querySelector('#editpost-tab > form > textarea').textContent = data.post.content
+                            
+                        }
+            
+                    })
+            }   
+            
+            function fillPostTable() {
+                fetch('/posts/loadall')
+                    .then(res => res.json())
+                    .then((data) => {
+            
+                        if (data.status == 'success') {
+            
+                            data.posts.forEach((post) => {
+            
+                                let parent = document.getElementById('postsTable')
+                                let row = document.createElement('tr')
+            
+                                // For Title
+                                let postnametd = document.createElement('td')
+                                let postname = document.createElement('a')
+                                postname.innerText = post.name
+                                postname.href = '/?post=' + post._id
+                                postnametd.appendChild(postname)
+                                row.appendChild(postnametd)
+            
+                                // For Post Type
+                                let typetd = document.createElement('td')
+                                typetd.innerText = post.type
+                                row.appendChild(typetd)
+            
+                                // For Length
+                                let lengthtd = document.createElement('td')
+                                lengthtd.innerText = post.length
+                                row.appendChild(lengthtd)
+            
+                                // For publish button
+                                let publishtd = document.createElement('td')
+                                let publish = document.createElement('a')
+                                publish.onclick = function () {changePostVisibility(post._id, typetd)}
+                                publish.innerText = 'Change'
+                                publish.classList.add('admin-table-button')
+                                publishtd.appendChild(publish)
+                                row.appendChild(publishtd)
+            
+                                // For Edit Button
+                                let editbuttontd = document.createElement('td')
+                                let editbutton = document.createElement('a')
+                                editbutton.onclick = function () {formatEditForm('/posts/load/' + post._id)}
+                                editbutton.innerText = 'Edit'
+                                editbutton.classList.add('admin-table-button')
+                                editbuttontd.appendChild(editbutton)
+                                row.appendChild(editbuttontd)
+            
+                                // For Delete Button
+                                let deletebuttontd = document.createElement('td')
+                                let deletebutton = document.createElement('a')
+                                deletebutton.onclick = function() {
+                                    deleteDatabaseEntry('/posts/delete/' + post._id, row)
+                                    document.querySelectorAll('option[value="' + post._id + '"]').forEach(option => option.remove())
+                                }
+                                deletebutton.innerText = 'Delete'
+                                deletebutton.classList.add('admin-table-button')
+                                deletebuttontd.appendChild(deletebutton)
+                                row.appendChild(deletebuttontd)
+            
+                                // Append row to table
+                                parent.appendChild(row)
+            
+                                // Append options for page
+                                let aboutoption = document.createElement('option')
+                                aboutoption.value = post._id
+                                aboutoption.innerText = post.name
+                                document.getElementById('aboutSelect').appendChild(aboutoption)
+            
+                                let contactoption = document.createElement('option')
+                                contactoption.value = post._id
+                                contactoption.innerText = post.name
+                                document.getElementById('contactSelect').appendChild(contactoption)
+                                
+                            })
+                        }
+                    })
+            }
+            
+            window.onload = function() {
+                fillUserTable()
+                fillPostTable()
+                Chart.defaults.global.defaultFontColor = "#FFFFFF"
+                loadStatistics()
+            }
+                        
+        </script>
 
         <div id="adminTitleBar" class="admin-title-bar">
             <a id="statistics-button" onclick="setSelectedTab('statistics-tab', 'statistics-button')">Statistics</a>
@@ -142,493 +652,6 @@
 
         </div>
 
-        <script>
 
-/*
---------------------------------------------------
-                Other Usage
---------------------------------------------------
-*/
-
-function selectHiddenTab(currenttabid, currentbuttonid, othertabid) {
-    setSelectedTab(currenttabid, currentbuttonid)
-    setTimeout(function () {setSelectedTab(othertabid, currentbuttonid)}, 500)
-}
-
-function setSelectedTab(tabid, buttonid) {
-    let parent = document.getElementById('adminContainer')
-    let titlebar = document.getElementById('adminTitleBar')
-    let buttonelement = document.getElementById(buttonid)
-    let tabelement = document.getElementById(tabid)
-
-    if (parent.style.opacity == 0) {
-        if (buttonelement) {
-            for (let i = 0; i < titlebar.children.length; i++) {
-                titlebar.children[i].classList.add('isDisabled')
-            } buttonelement.classList.remove('isDisabled')
-        }
-        parent.style.opacity = 1
-    } else {
-        for (let i = 0; i < titlebar.children.length; i++) {
-            titlebar.children[i].classList.remove('isDisabled')
-        } parent.style.opacity = 0
-    }
-
-    for (let i = 0; i < parent.children.length; i++) {
-        parent.children[i].style.display = "none"
-    }
-    tabelement.style.display = "block"
-}
-
-function deleteDatabaseEntry(apicall, managementrow) {
-    fetch(apicall)
-        .then(res => res.json())
-        .then((data) => {
-            if (data.status == 'success') {
-                managementrow.remove()
-            }
-        })
-}
-
-/*
---------------------------------------------------
-                Statistics Tab
---------------------------------------------------
-*/
-
-
-function formatChart(canvasid, graphtype, label, labels, data) {
-    let totalctx = document.getElementById(canvasid).getContext('2d')
-    let totalchart = new Chart(totalctx, {
-        type: graphtype,
-        data: {
-            labels: labels,
-            datasets: [{
-            label: label,
-            data: data,
-            borderColor: 'rgb(46, 95, 230)',
-            borderWidth: 4
-        }]},
-        options: {
-            maintainAspectRatio: false,
-        }
-    })
-}
-
-function toggleBotFilter() {
-    let botrows = document.querySelectorAll('.table-bot-row')
-    if (botrows.length > 0) {
-        botrows.forEach((row) => {
-            row.remove()
-        })
-    } else {
-        fetch('/website/load/bots')
-            .then(res => res.json())
-            .then((data) => {
-                if (data.status == 'success') {
-                    formatStatisticsTable(data.records)
-                }
-            })
-    }
-    
-}
-
-function deleteAllBots() {
-    fetch('/website/deletebots')
-        .then(res => res.json())
-        .then((data) => {
-            if (data.status = 'success') {
-                toggleBotFilter()
-            }
-        })
-}
-
-function firstVisitSortFunction() {
-    console.log('In first sort function')          
-    let parent = document.getElementById('loggingTable').parentNode
-    let loggingtableClone = document.getElementById('loggingTable').cloneNode(true)
-    let childarray = []
-
-    for (let i = 0; i < loggingtableClone.children.length; i++) {
-        if (loggingtableClone.children[i].nodeName === "TR") {
-            childarray.push(loggingtableClone.children[i])
-        }
-    }
-
-    childarray = childarray.sort(function (a, b) {
-        let dateA = Date.parse(a.children[2].innerText)
-        let dateB = Date.parse(b.children[2].innerText)
-        if (dateA < dateB) {
-            return 1
-        }
-        if (dateA > dateB) {
-            return -1
-        }
-        return 0
-    })
-
-    childarray.unshift(loggingtableClone.children[0])
-    let loggingtable = document.getElementById('loggingTable')
-    loggingtable.innerHTML = ''
-    childarray.forEach(child => loggingtable.appendChild(child)) 
-
-}
-
-function lastVisitSortFunction() {
-    console.log('In last sort function')
-    let parent = document.getElementById('loggingTable').parentNode
-    let loggingtableClone = document.getElementById('loggingTable').cloneNode(true)
-    let childarray = []
-
-    for (let i = 0; i < loggingtableClone.children.length; i++) {
-        if (loggingtableClone.children[i].nodeName === "TR") {
-            childarray.push(loggingtableClone.children[i])
-        }
-    }
-
-    childarray = childarray.sort(function (a, b) {
-        let dateA = Date.parse(a.children[3].innerText)
-        let dateB = Date.parse(b.children[3].innerText)
-        if (dateA < dateB) {
-            return 1
-        }
-        if (dateA > dateB) {
-            return -1
-        }
-        return 0
-    })
-
-    childarray.unshift(loggingtableClone.children[0])
-    let loggingtable = document.getElementById('loggingTable')
-    loggingtable.innerHTML = ''
-    childarray.forEach(child => loggingtable.appendChild(child))    
-}
-
-function formatStatisticsTable(records) {
-
-    records.forEach((record) => {
-        let parent = document.getElementById('loggingTable')
-        let row = document.createElement('tr')
-
-        // For logging token
-        let websitetokentd = document.createElement('td')
-        websitetokentd.innerText = record.token
-        websitetokentd.onclick = function () {
-            if (this.lastChild.style.display === 'none') {
-                this.lastChild.style.display = 'flex'
-            } else {
-                this.lastChild.style.display = 'none'
-            }
-        }
-        row.appendChild(websitetokentd)
-
-        // For record type
-        let typetd = document.createElement('td')
-        if (record.user === true) {
-            typetd.innerText = 'User'
-        } else {
-            row.classList.add('table-bot-row')
-            typetd.innerText = 'Bot'
-        }
-        row.appendChild(typetd)
-
-        // For first visit to site
-        let firstvisittd = document.createElement('td')
-        firstvisittd.innerText = new Date(record.firstvisit).toLocaleString()
-        row.appendChild(firstvisittd)
-
-        // For last visit to site
-        let lastvisittd = document.createElement('td')
-        lastvisittd.innerText = new Date(record.lastvisit).toLocaleString()
-        row.appendChild(lastvisittd)
-
-        let deletebuttontd = document.createElement('td')
-        let deletebutton = document.createElement('a')
-        deletebutton.innerText = 'Delete'
-        deletebutton.onclick = function () {deleteDatabaseEntry('/website/delete/' + record.token, row)}
-        deletebutton.classList.add('admin-table-button')
-        deletebuttontd.appendChild(deletebutton)
-        row.appendChild(deletebuttontd)
-
-        // For more info dropdown
-        let moreinfodiv = document.createElement('div')
-        moreinfodiv.style.display = 'none'
-        moreinfodiv.classList.add('admin-table-dropdown')
-        websitetokentd.appendChild(moreinfodiv)
-
-        // For ip address
-        let ipaddress = document.createElement('p')
-        ipaddress.innerText = 'IP Address: ' + record.ip
-        moreinfodiv.appendChild(ipaddress)
-
-        // For refering link
-        let referer = document.createElement('p')
-        referer.innerText = 'Referer: ' + record.referer
-        moreinfodiv.appendChild(referer)
-
-        // For viewed paths
-        let paths = document.createElement('p')
-        paths.innerText = 'Viewed Paths: ' + record.paths.toString().replaceAll(',', ', ')
-        moreinfodiv.appendChild(paths)
-
-        // For user agent
-        let useragent = document.createElement('p')
-        useragent.innerText = 'User Agent: ' + record.useragent
-        moreinfodiv.appendChild(useragent)
-
-        parent.appendChild(row)
-    })
-}
-
-function loadStatistics() {
-    fetch('/website/stats')
-        .then(res => res.json())
-        .then((data) => {
-            if (data.status == 'success') {
-                // For other information
-                document.getElementById('totalViews').innerText = 'Total Views: ' + data.statistics.totalviews
-                document.getElementById('userViews').innerText = 'User Views: ' + data.statistics.userviews
-                document.getElementById('activeUsers').innerText = 'Active Users: ' + data.statistics.activeusers
-
-                // Total new views in the last 7 days
-                formatChart(
-                    'userViewsChart',
-                    'line',
-                    'Human Views',
-                    ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
-                    data.statistics.newvisits
-                )
-
-                // Views for each post
-                formatChart(
-                    'postViewsChart',
-                    'bar',
-                    'Post Views',
-                    data.statistics.posts,
-                    data.statistics.postviews
-                )
-            }
-        })
-    
-    fetch('/website/load/users')
-        .then(res => res.json())
-        .then((data) => {
-            if (data.status == 'success') {
-                formatStatisticsTable(data.records)
-            }
-        })
-}
-
-/*
---------------------------------------------------
-            Management Tab | Users
---------------------------------------------------
-*/
-
-function changeUserRole(username, adminstatuselement) {
-    fetch('/users/changerole/' + username)
-        .then(res => res.json())
-        .then((data) => {
-            if (data.status == 'success') {
-                if (adminstatuselement.innerText == 'true') {
-                    adminstatuselement.innerText = 'false'
-                } else {
-                    adminstatuselement.innerText = 'true'
-                }
-            }
-        })
-    
-}
-
-function fillUserTable() {
-    fetch('/users/loadall')
-        .then(res => res.json())
-        .then((data) => {
-            if (data.status == 'success') {
-                data.users.forEach((user) => {
-                    let parent = document.getElementById('usersTable')
-                    let row = document.createElement('tr')
-
-                    // For Username
-                    let usernametd = document.createElement('td')
-                    usernametd.innerText = user.username
-                    row.appendChild(usernametd)
-
-                    // For Admin Status
-                    let isadmintd = document.createElement('td')
-                    isadmintd.innerText = user.isadmin
-                    row.appendChild(isadmintd)
-
-                    // For Change Role Button
-                    let changeroletd = document.createElement('td')
-                    let changerole = document.createElement('a')
-                    changerole.onclick = function () {changeUserRole(user.username, isadmintd)}
-                    changerole.innerText = 'Change Role'
-                    changerole.classList.add('admin-table-button')
-                    changeroletd.appendChild(changerole)
-                    row.appendChild(changeroletd)
-
-                    // For Delete Button
-                    let deletebuttontd = document.createElement('td')
-                    let deletebutton = document.createElement('a')
-                    deletebutton.onclick = function() {deleteDatabaseEntry('/users/delete/' + user.username, row)}
-                    deletebutton.innerText = 'Delete'
-                    deletebutton.classList.add('admin-table-button')
-                    deletebuttontd.appendChild(deletebutton)
-                    row.appendChild(deletebuttontd)
-
-                    parent.appendChild(row)
-                })
-            }
-        })
-}
-
-/*
---------------------------------------------------
-            Management Tab | Posts
---------------------------------------------------
-*/
-
-function setPostType(selectorid, posttype) {
-    let selectorelem = document.getElementById(selectorid)
-    let selected = selectorelem.options[selectorelem.selectedIndex].value
-    fetch('/posts/set/' + posttype + '/' + selected)
-    location.reload()
-}
-
-function changePostVisibility(postid, typetd) {
-    if (typetd.innerText === "private") {
-        fetch('/posts/set/post/' + postid)
-            .then(res => res.json())
-            .then((data) => {
-                if (data.status == 'success') {
-                    typetd.innerText = "post"
-                }
-            })
-        
-    } else {
-        fetch('/posts/set/private/' + postid)
-            .then(res => res.json())
-            .then((data) => {
-                if (data.status == 'success') {
-                    typetd.innerText = "private"
-                }
-            })
-    }
-}
-
-function toggleFileUploadDropdown() {
-    let uploadelem = document.getElementById('fileUploadDropdown')
-    if (uploadelem.style.display === 'none') {
-        uploadelem.style.display = 'block'
-    } else {
-        uploadelem.style.display = 'none'
-    }
-}
-
-function formatEditForm(url) {
-    fetch(url)
-        .then(res => res.json())
-        .then((data) => {
-            if (data.status == 'success') {
-
-                selectHiddenTab('management-tab', 'management-button', 'editpost-tab')
-                document.getElementById('adminContainer').style.opacity = 0
-                document.querySelector('#editpost-tab > form').action = '/posts/edit/' + data.post._id
-                document.querySelector('#editpost-tab > form > input.standard-input').value = data.post.name
-                document.querySelector('#editpost-tab > form > textarea').textContent = data.post.content
-                
-            }
-
-        })
-}   
-
-function fillPostTable() {
-    fetch('/posts/loadall')
-        .then(res => res.json())
-        .then((data) => {
-
-            if (data.status == 'success') {
-
-                data.posts.forEach((post) => {
-
-                    let parent = document.getElementById('postsTable')
-                    let row = document.createElement('tr')
-
-                    // For Title
-                    let postnametd = document.createElement('td')
-                    let postname = document.createElement('a')
-                    postname.innerText = post.name
-                    postname.href = '/?post=' + post._id
-                    postnametd.appendChild(postname)
-                    row.appendChild(postnametd)
-
-                    // For Post Type
-                    let typetd = document.createElement('td')
-                    typetd.innerText = post.type
-                    row.appendChild(typetd)
-
-                    // For Length
-                    let lengthtd = document.createElement('td')
-                    lengthtd.innerText = post.length
-                    row.appendChild(lengthtd)
-
-                    // For publish button
-                    let publishtd = document.createElement('td')
-                    let publish = document.createElement('a')
-                    publish.onclick = function () {changePostVisibility(post._id, typetd)}
-                    publish.innerText = 'Change'
-                    publish.classList.add('admin-table-button')
-                    publishtd.appendChild(publish)
-                    row.appendChild(publishtd)
-
-                    // For Edit Button
-                    let editbuttontd = document.createElement('td')
-                    let editbutton = document.createElement('a')
-                    editbutton.onclick = function () {formatEditForm('/posts/load/' + post._id)}
-                    editbutton.innerText = 'Edit'
-                    editbutton.classList.add('admin-table-button')
-                    editbuttontd.appendChild(editbutton)
-                    row.appendChild(editbuttontd)
-
-                    // For Delete Button
-                    let deletebuttontd = document.createElement('td')
-                    let deletebutton = document.createElement('a')
-                    deletebutton.onclick = function() {
-                        deleteDatabaseEntry('/posts/delete/' + post._id, row)
-                        document.querySelectorAll('option[value="' + post._id + '"]').forEach(option => option.remove())
-                    }
-                    deletebutton.innerText = 'Delete'
-                    deletebutton.classList.add('admin-table-button')
-                    deletebuttontd.appendChild(deletebutton)
-                    row.appendChild(deletebuttontd)
-
-                    // Append row to table
-                    parent.appendChild(row)
-
-                    // Append options for page
-                    let aboutoption = document.createElement('option')
-                    aboutoption.value = post._id
-                    aboutoption.innerText = post.name
-                    document.getElementById('aboutSelect').appendChild(aboutoption)
-
-                    let contactoption = document.createElement('option')
-                    contactoption.value = post._id
-                    contactoption.innerText = post.name
-                    document.getElementById('contactSelect').appendChild(contactoption)
-                    
-                })
-            }
-        })
-}
-
-window.onload = function() {
-    fillUserTable()
-    fillPostTable()
-    Chart.defaults.global.defaultFontColor = "#FFFFFF"
-    loadStatistics()
-}
-
-        </script>
     </body>
 </html>

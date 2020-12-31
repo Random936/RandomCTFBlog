@@ -11,7 +11,7 @@ const uuid = require('uuid')
 
 // Change before production!
 const websitedomain = 'randomctf.com'
-const portnumber = 3000
+const portnumber = 80
 const jwtsecret = uuid.v4()
 const saltRounds = 10
 
@@ -20,6 +20,7 @@ db.users = new Datastore({ filename: 'users.db', autoload: true })
 db.posts = new Datastore({ filename: 'posts.db', autoload: true })
 db.tracking = new Datastore({ filename: 'tracking.db', autoload: true })
 
+app.use(require('prerender-node'))
 app.use(express.static('static'))
 app.use(expressFileUpload({ safeFileNames: true }))
 app.use(cookieParser())

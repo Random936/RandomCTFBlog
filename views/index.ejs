@@ -73,6 +73,7 @@
                             let parent = document.getElementById('fullPostContainer')
 
                             if (parent.firstChild.innerText != data.post.name) {
+                                console.log('parent.firstChild.innerText != data.post.name')
                                 parent.style.opacity = 0
                                 document.title = data.post.name + ' | RandomCTF'
                                 window.history.pushState({'post': data.post._id}, '', '/?post=' + data.post._id)
@@ -81,6 +82,7 @@
                                     parent.style.opacity = 1
                                 }, 500)
                             } else if (parent.style.opacity != 0) {
+                                console.log('parent.style.opacity != 0')
                                 parent.style.opacity = 0
                                 document.title = 'RandomCTF | Ethical hacking, Programming, and Tutorials'
                                 window.history.pushState({}, '', '/')
@@ -88,6 +90,7 @@
                                     formatPostContainer(data.post)
                                 }, 500)
                             } else {
+                                console.log('else')
                                 parent.style.opacity = 1
                                 document.title = data.post.name + ' | RandomCTF'
                                 window.history.pushState({'post': data.post._id}, '', '/?post=' + data.post._id)
@@ -122,7 +125,6 @@
                         let postspan = document.createElement('span')
                         postspan.classList.add('post-container')
                         postspan.onmouseover = function () {setSlide(index + 1)}
-                        postspan.onclick = function () {loadPostContent('/posts/load/' + post._id)}
 
                         // For Post URL
                         let postlink = document.createElement('a')

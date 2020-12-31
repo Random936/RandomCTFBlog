@@ -20,7 +20,6 @@ db.users = new Datastore({ filename: 'users.db', autoload: true })
 db.posts = new Datastore({ filename: 'posts.db', autoload: true })
 db.tracking = new Datastore({ filename: 'tracking.db', autoload: true })
 
-app.use(require('prerender-node'))
 app.use(express.static('static'))
 app.use(expressFileUpload({ safeFileNames: true }))
 app.use(cookieParser())
@@ -43,11 +42,11 @@ app.set('trust proxy', true)
 */
 
 app.get('/', (req, res) => {
-    res.render('index.ejs')
+    res.sendFile(__dirname + '/views/index.html')
 })
 
 app.get('/admin', AdminAuth, (req, res) => {
-    res.render('admin.ejs')
+    res.sendFile(__dirname + '/views/admin.html')
 })
 
 /*

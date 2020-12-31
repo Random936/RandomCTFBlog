@@ -399,8 +399,8 @@ body {
 }
 
 .admin-create-post-textarea {
-    width: 100%;
-    height: calc(64vh - 32px);
+    width: calc(100% - 40px);
+    height: calc(60vh - 32px);
     margin-top: 2vh;
 
     padding: 20px;
@@ -488,7 +488,7 @@ body {
 }
 
 .standard-input {
-    width: 49%;
+    width: 48%;
     padding: 10px;
     border: 1px;
     border-radius: 10px;

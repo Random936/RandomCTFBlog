@@ -7,6 +7,141 @@
     </head>
     <body class="admin-page-body">
 
+        <div id="adminTitleBar" class="admin-title-bar">
+            <a id="statistics-button" onclick="setSelectedTab('statistics-tab', 'statistics-button')">Statistics</a>
+            <a id="management-button" onclick="setSelectedTab('management-tab', 'management-button')">Management</a>
+            <a id="marketplace-button">Marketplace</a>
+            <a href="/">Home Page</a>
+            <a href="/logout">Logout</a>
+        </div>
+
+        <div id="adminContainer" class="admin-container">
+
+            <div id="statistics-tab" style="display: none;">
+                <div style="display: flex; justify-content: space-evenly;">
+                    <p id="totalViews" class="standard-label"></p>
+                    <p id="userViews" class="standard-label"></p>
+                    <p id="activeUsers" class="standard-label"></p>
+                </div>
+
+                <div style="text-align: center;">
+                    <div style="margin: 1vw; width: 92vw; height: 35vh;">
+                        <canvas id="userViewsChart"></canvas>
+                    </div>
+                    <div style="margin: 1vw; width: 92vw; height: 35vh;">
+                        <canvas id="postViewsChart"></canvas>
+                    </div>
+                </div>
+
+                <div>
+                    <table id="loggingTable" style="margin: 1%; width: 98%;" class="admin-table">
+                        <tbody>
+                            <tr>
+                                <th>Token</th>
+                                <th>Type</th>
+                                <th><a onclick="firstVisitSortFunction()" class="admin-table-button">First Visit</a></th>
+                                <th><a onclick="lastVisitSortFunction()" class="admin-table-button">Last Visit</a></th>
+                                <th>Delete</th>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div style="display: flex; justify-content: space-evenly;">
+                        <a onclick="toggleBotFilter()" class="admin-table-button-create" style="margin: auto; margin-bottom: 2%;">Toggle Bots</a>
+                        <a onclick="deleteAllBots()" class="admin-table-button-create" style="margin: auto; margin-bottom: 2%;">Delete Bots</a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="management-tab" style="display: none;">
+                <div style="display: flex; flex-flow: row;">
+                    <div class="admin-table-container" style="float: left;">
+                        <table id="usersTable" class="admin-table">
+                            <tr>
+                                <th>Username</th>
+                                <th>Admin</th>
+                                <th>Change Role</th>
+                                <th>Delete</th>
+                            </tr>
+                        </table>
+                        <a onclick="selectHiddenTab('management-tab', 'management-button', 'createuser-tab')" class="admin-table-button-create">Create User</a>
+                    </div>
+
+                    <div class="admin-table-container" style="float: right;">
+                        <table id="postsTable" class="admin-table">
+                            <tr>
+                                <th>Title</th>
+                                <th>Type</th>
+                                <th>Length</th>
+                                <th>Visibility</th>
+                                <th>Edit</th>
+                                <th>Delete</th>
+                            </tr>
+                        </table>
+                        <div style="display: flex; justify-content: space-evenly;">
+                            <a onclick="selectHiddenTab('management-tab', 'management-button', 'createpost-tab')" class="admin-table-button-create" style="margin-right: 0; margin-left: 0;">Create Post</a>
+                            <a onclick="toggleFileUploadDropdown()" class="admin-table-button-create" style="margin-right: 0; margin-left: 0">Upload Image</a>    
+                        </div>
+                        <div id="fileUploadDropdown" class="admin-table-dropdown" style="display: none; background-color: rgb(50, 50, 50); text-align: center;">
+                            <form action="/posts/upload" method="POST" enctype="multipart/form-data" style="margin: 15px;">
+                                <input type="file" name="image" class="admin-create-post-upload">
+                                <input type="submit" class="submit-button">
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-evenly;">
+                    <a onclick="setPostType('aboutSelect', 'about')" class="submit-button" style="float: left; margin-top: 0; margin-bottom: 0;">Set About</a>
+                    <select id="aboutSelect" class="standard-select" style="margin-top: 0; margin-bottom: 0;">
+                        <option>Select the about page...</option>
+                    </select>
+                    <a onclick="setPostType('contactSelect', 'contact')" class="submit-button" style="float: right; margin-top: 0; margin-bottom: 0;">Set Contact</a>
+                    <select id="contactSelect" class="standard-select" style="margin-top: 0; margin-bottom: 0;">
+                        <option>Select the contact page...</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="createpost-tab" class="admin-create-post-container" style="display: none;">
+                <form action="/posts/create" method="POST" enctype="multipart/form-data">
+                    <input type="text" name="postname" class="standard-input" style="float: left;" placeholder="Enter your post's title.">
+                    <input type="file" name="image" class="admin-create-post-upload" style="float: right;">
+                    <textarea name="postcontent" class="admin-create-post-textarea" rows="6" cols="60"></textarea>
+                    <div style="display: flex; justify-content: space-evenly;">
+                        <input type="submit" class="submit-button" value="Save Post">
+                        <a class="submit-button" onclick="setSelectedTab('createpost-tab', 'management-button')">Cancel</a>
+                    </div>
+                </form>
+            </div>
+
+            <div id="editpost-tab" class="admin-create-post-container" style="display: none;">
+                <form method="POST" enctype="multipart/form-data">
+                    <input type="text" name="postname" class="standard-input" style="float: left;" placeholder="Enter your post's title.">
+                    <input type="file" name="image" class="admin-create-post-upload" style="float: right;">
+                    <textarea name="postcontent" class="admin-create-post-textarea" rows="6" cols="60"></textarea>
+                    <div style="display: flex; justify-content: space-evenly;">
+                        <input type="submit" class="submit-button" value="Apply Changes">
+                        <a class="submit-button" onclick="setSelectedTab('editpost-tab', 'management-button')">Cancel</a>
+                    </div>
+                </form>
+            </div>
+
+            <div id="createuser-tab" style="display: none; margin: 20vh;">
+                <div class="create-user-container">
+                    <h2 class="login-form-title" style="text-align: center;">Create User</h2>
+                    <form action="/users/create" method="POST" style="text-align: center;">
+                        <input type="text" name="username" class="standard-input" placeholder="Username"><br>
+                        <input type="password" name="password" class="standard-input" placeholder="Password"><br>
+                        <label class="standard-label">Admin Permissions: <input type="checkbox" name="isadmin" style="transform: scale(3); margin: 20px;"></label><br>
+                        <div>
+                            <input type="submit" class="submit-button" value="Create User">
+                            <a class="submit-button" onclick="setSelectedTab('createuser-tab', 'management-button')">Cancel</a>
+                        </div> 
+                    </form>   
+                </div>
+            </div>
+
+        </div>
+
         <script>
 
             /*
@@ -63,6 +198,7 @@
             
             
             function formatChart(canvasid, graphtype, label, labels, data) {
+                console.log(labels + " " + data)
                 let totalctx = document.getElementById(canvasid).getContext('2d')
                 let totalchart = new Chart(totalctx, {
                     type: graphtype,
@@ -75,7 +211,7 @@
                         borderWidth: 4
                     }]},
                     options: {
-                        maintainAspectRatio: false,
+                        maintainAspectRatio: false
                     }
                 })
             }
@@ -513,143 +649,6 @@
             }
                         
         </script>
-
-        <div id="adminTitleBar" class="admin-title-bar">
-            <a id="statistics-button" onclick="setSelectedTab('statistics-tab', 'statistics-button')">Statistics</a>
-            <a id="management-button" onclick="setSelectedTab('management-tab', 'management-button')">Management</a>
-            <a id="marketplace-button">Marketplace</a>
-            <a href="/">Home Page</a>
-            <a href="/logout">Logout</a>
-        </div>
-
-        <div id="adminContainer" class="admin-container">
-
-            <div id="statistics-tab" style="display: none;">
-                <div style="display: flex; justify-content: space-evenly;">
-                    <p id="totalViews" class="standard-label"></p>
-                    <p id="userViews" class="standard-label"></p>
-                    <p id="activeUsers" class="standard-label"></p>
-                </div>
-
-                <div style="text-align: center;">
-                    
-                    <div style="margin: 1%; width: 98%; height: 36%;">
-                        <canvas id="userViewsChart" ></canvas>
-                    </div>
-                    <div style="margin: 1%; width: 98%; height: 36%;">
-                        <canvas id="postViewsChart"></canvas>
-                    </div>
-                </div>
-
-                <div>
-                    <table id="loggingTable" style="margin: 1%; width: 98%;" class="admin-table">
-                        <tbody>
-                            <tr>
-                                <th>Token</th>
-                                <th>Type</th>
-                                <th><a onclick="firstVisitSortFunction()" class="admin-table-button">First Visit</a></th>
-                                <th><a onclick="lastVisitSortFunction()" class="admin-table-button">Last Visit</a></th>
-                                <th>Delete</th>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div style="display: flex; justify-content: space-evenly;">
-                        <a onclick="toggleBotFilter()" class="admin-table-button-create" style="margin: auto; margin-bottom: 2%;">Toggle Bots</a>
-                        <a onclick="deleteAllBots()" class="admin-table-button-create" style="margin: auto; margin-bottom: 2%;">Delete Bots</a>
-                    </div>
-                </div>
-            </div>
-
-            <div id="management-tab" style="display: none;">
-                <div style="display: flex; flex-flow: row;">
-                    <div class="admin-table-container" style="float: left;">
-                        <table id="usersTable" class="admin-table">
-                            <tr>
-                                <th>Username</th>
-                                <th>Admin</th>
-                                <th>Change Role</th>
-                                <th>Delete</th>
-                            </tr>
-                        </table>
-                        <a onclick="selectHiddenTab('management-tab', 'management-button', 'createuser-tab')" class="admin-table-button-create">Create User</a>
-                    </div>
-
-                    <div class="admin-table-container" style="float: right;">
-                        <table id="postsTable" class="admin-table">
-                            <tr>
-                                <th>Title</th>
-                                <th>Type</th>
-                                <th>Length</th>
-                                <th>Visibility</th>
-                                <th>Edit</th>
-                                <th>Delete</th>
-                            </tr>
-                        </table>
-                        <div style="display: flex; justify-content: space-evenly;">
-                            <a onclick="selectHiddenTab('management-tab', 'management-button', 'createpost-tab')" class="admin-table-button-create" style="margin-right: 0; margin-left: 0;">Create Post</a>
-                            <a onclick="toggleFileUploadDropdown()" class="admin-table-button-create" style="margin-right: 0; margin-left: 0">Upload Image</a>    
-                        </div>
-                        <div id="fileUploadDropdown" class="admin-table-dropdown" style="display: none; background-color: rgb(50, 50, 50); text-align: center;">
-                            <form action="/posts/upload" method="POST" enctype="multipart/form-data" style="margin: 15px;">
-                                <input type="file" name="image" class="admin-create-post-upload">
-                                <input type="submit" class="submit-button">
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                <div style="display: flex; justify-content: space-evenly;">
-                    <a onclick="setPostType('aboutSelect', 'about')" class="submit-button" style="float: left; margin-top: 0; margin-bottom: 0;">Set About</a>
-                    <select id="aboutSelect" class="standard-select" style="margin-top: 0; margin-bottom: 0;">
-                        <option>Select the about page...</option>
-                    </select>
-                    <a onclick="setPostType('contactSelect', 'contact')" class="submit-button" style="float: right; margin-top: 0; margin-bottom: 0;">Set Contact</a>
-                    <select id="contactSelect" class="standard-select" style="margin-top: 0; margin-bottom: 0;">
-                        <option>Select the contact page...</option>
-                    </select>
-                </div>
-            </div>
-
-            <div id="createpost-tab" class="admin-create-post-container" style="display: none;">
-                <form action="/posts/create" method="POST" enctype="multipart/form-data">
-                    <input type="text" name="postname" class="standard-input" style="float: left;" placeholder="Enter your post's title.">
-                    <input type="file" name="image" class="admin-create-post-upload" style="float: right;">
-                    <textarea name="postcontent" class="admin-create-post-textarea" rows="6" cols="60"></textarea>
-                    <div style="display: flex; justify-content: space-evenly;">
-                        <input type="submit" class="submit-button" value="Save Post">
-                        <a class="submit-button" onclick="setSelectedTab('createpost-tab', 'management-button')">Cancel</a>
-                    </div>
-                </form>
-            </div>
-
-            <div id="editpost-tab" class="admin-create-post-container" style="display: none;">
-                <form method="POST" enctype="multipart/form-data">
-                    <input type="text" name="postname" class="standard-input" style="float: left;" placeholder="Enter your post's title.">
-                    <input type="file" name="image" class="admin-create-post-upload" style="float: right;">
-                    <textarea name="postcontent" class="admin-create-post-textarea" rows="6" cols="60"></textarea>
-                    <div style="display: flex; justify-content: space-evenly;">
-                        <input type="submit" class="submit-button" value="Apply Changes">
-                        <a class="submit-button" onclick="setSelectedTab('editpost-tab', 'management-button')">Cancel</a>
-                    </div>
-                </form>
-            </div>
-
-            <div id="createuser-tab" style="display: none; margin: 20vh;">
-                <div class="create-user-container">
-                    <h2 class="login-form-title" style="text-align: center;">Create User</h2>
-                    <form action="/users/create" method="POST" style="text-align: center;">
-                        <input type="text" name="username" class="standard-input" placeholder="Username"><br>
-                        <input type="password" name="password" class="standard-input" placeholder="Password"><br>
-                        <label class="standard-label">Admin Permissions: <input type="checkbox" name="isadmin" style="transform: scale(3); margin: 20px;"></label><br>
-                        <div>
-                            <input type="submit" class="submit-button" value="Create User">
-                            <a class="submit-button" onclick="setSelectedTab('createuser-tab', 'management-button')">Cancel</a>
-                        </div> 
-                    </form>   
-                </div>
-            </div>
-
-        </div>
-
 
     </body>
 </html>

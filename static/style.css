@@ -426,13 +426,13 @@ body {
 */
 
 .login-form-container {
-    padding: 20px;
+    padding: 30px;
+    padding-bottom: 60px;
 
     margin-top: 24vh;
     margin-left: 40vw;
     margin-right: 40vw;
 
-    height: 46vh;
     width: 20vw;
     border-radius: 20px;
 

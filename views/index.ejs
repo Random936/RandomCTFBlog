@@ -114,24 +114,29 @@
 
                         // Create Post Container
                         let postparent = document.getElementById('posts')
-                        let postdiv = document.createElement('div')
-                        postdiv.classList.add('post-container')
-                        postdiv.onmouseover = function () {setSlide(index + 1)}
-                        postdiv.onclick = function () {loadPostContent('/posts/load/' + post._id)}
+                        let postacontainer = document.createElement('a')
+                        postacontainer.classList.add('standard-link')
+                        postacontainer.href = 'javascript:loadPostContent(\'/posts/load/'+ post._id + '\')'
+                        
+                        let postspan = document.createElement('span')
+                        postspan.classList.add('post-container')
+                        postspan.onmouseover = function () {setSlide(index + 1)}
+                        postspan.onclick = function () {loadPostContent('/posts/load/' + post._id)}
 
                         // For Post URL
                         let postlink = document.createElement('a')
                         postlink.innerText = post.name
-                        postdiv.appendChild(postlink)
-                        postdiv.appendChild(document.createElement('br'))
+                        postspan.appendChild(postlink)
+                        postspan.appendChild(document.createElement('br'))
 
                         // For Post Content
                         let postcontent = document.createElement('p')
                         postcontent.innerText = post.content
-                        postdiv.appendChild(postcontent)
+                        postspan.appendChild(postcontent)
 
                         // Append the div
-                        postparent.appendChild(postdiv)
+                        postacontainer.appendChild(postspan)
+                        postparent.appendChild(postacontainer)
 
                         // Create Slide
                         let slideparent = document.getElementById('slideshowContainer')

@@ -138,6 +138,8 @@ body {
 }
 
 .post-container {
+    display: block;
+
     margin: 20px;
     padding: 10px;
     border-radius: 20px;
@@ -474,6 +476,11 @@ body {
 
 .create-user-container * {
     margin: 1vh;
+}
+
+.standard-link {
+    color: white;
+    text-decoration: none;
 }
 
 .standard-label {

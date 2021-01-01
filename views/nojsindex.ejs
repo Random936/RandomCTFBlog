@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>RandomCTF | Ethical hacking, Programming, and Tutorials</title>
+        <meta name="description" content="RandomCTF is a blog centered on providing up to date content about ethical hacking and programming.">
+        <meta name="keywords" content="CTF,hacking,cybersecurity,programming,blog">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="/style.css">
+        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    </head>
+    <body>  
+        <div id="slideshowContainer">
+
+            <div class="title-bar">
+                <a href="/login">Login</a>
+                <a class="isDisabled">Marketplace</a>
+                <a href="/post/<%= contactid %>">Contact</a>
+                <a href="/post/<%= aboutid %>">About</a>   
+            </div>
+
+            <div id="posts" class="post-bar">
+                <h1 class="post-bar-title">Random<br>CTF</h1>
+                <% posts.forEach((post) => { if (post.type !== "contact" && post.type !== "about") { %>
+                    <div class="post-container">
+                        <a href="/post/<%= post._id %>" class="post-container-link"><%= post.name %></a>
+                        <br>
+                        <p class="post-container-description"><%= post.desc %></p>
+                    </div>
+                <% }}) %>
+            </div>
+
+            <div id="fullPostContainer" style="opacity: <%= opacity %>;">
+                <% if (locals.currentpost) { %>
+                    <h2><%= currentpost.name %></h2>
+                    <p><%= currentpost.content %></p>
+                <% } %>
+            </div>
+
+            <div class="slideshow-slide slideshow-active">
+                <img src="/defaultbackground.jpg" alt="">
+            </div>
+        
+        </div>
+    </body>
+</html>

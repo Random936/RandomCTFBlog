@@ -42,7 +42,78 @@ app.set('trust proxy', true)
 */
 
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/views/index.html')
+    console.log(req.headers['user-agent'])
+    if (/.*(bot|google|twitter|facebook).*/.test(req.headers['user-agent'])) {
+        db.posts.find({type: { $ne: 'private'} }, (err, posts) => {
+            if (err || !posts) {
+                return res.end('An error occured.')
+            } else {
+
+                posts.forEach((post) => {
+                    if (post.content.match(/[^.!?]+[.!?]/g) !== null) {
+                        post.desc = post.content.match(/[^.!?]+[.!?]/g)[0]
+                    } else {
+                        post.desc = post.content.substring(0, 100)
+                    }
+                })
+
+                let contactpost = posts.find(post => post.type === 'contact')
+                let aboutpost = posts.find(post => post.type === 'about')
+
+                res.render('nojsindex.ejs', {
+                    posts: posts,
+                    contactid: contactpost._id,
+                    aboutid: aboutpost._id,
+                    opacity: 0
+                })
+            }
+        })
+    } else {
+        res.sendFile(__dirname + '/views/index.html')
+    }
+})
+
+app.get('/post/:id', (req, res) => {
+   
+    if (/.*(bot|google|twitter|facebook).*/.test(req.headers['user-agent'])) {
+
+        if (typeof req.params.id !== 'string') {
+            return res.redirect('/')
+        }
+
+        db.posts.find({ type: { $ne: 'private' } }, (err, posts) => {
+            if (err || !posts) {
+                return res.redirect('/')
+            }
+
+            posts.forEach((post) => {
+                if (post.content.match(/[^.!?]+[.!?]/g) !== null) {
+                    post.desc = post.content.match(/[^.!?]+[.!?]/g)[0]
+                } else {
+                    post.desc = post.content.substring(0, 100)
+                }
+            })
+
+            let currentpost = posts.find(post => post._id === req.params.id)
+            let contactpost = posts.find(post => post.type === 'contact')
+            let aboutpost = posts.find(post => post.type === 'about')
+
+            if (currentpost) {
+                return res.render('nojsindex.ejs', {
+                    posts: posts,
+                    currentpost: currentpost,
+                    contactid: contactpost._id,
+                    aboutid: aboutpost._id,
+                    opacity: 1
+                })
+            }
+            
+        })
+
+    } else {
+        res.sendFile(__dirname + '/views/index.html')
+    }
+
 })
 
 app.get('/admin', AdminAuth, (req, res) => {

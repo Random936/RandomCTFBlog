@@ -5,7 +5,7 @@
         <meta name="description" content="RandomCTF is a blog centered on providing up to date content about ethical hacking and programming.">
         <meta name="keywords" content="CTF,hacking,cybersecurity,programming,blog">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="/style.css">
         <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     </head>
     <body>  
@@ -26,7 +26,7 @@
             </div>
 
             <div class="slideshow-slide slideshow-active">
-                <img src="defaultbackground.jpg" alt="">
+                <img src="/defaultbackground.jpg" alt="">
             </div>
         
         </div>
@@ -73,16 +73,14 @@
                             let parent = document.getElementById('fullPostContainer')
 
                             if (parent.firstChild.innerText != data.post.name) {
-                                console.log('parent.firstChild.innerText != data.post.name')
                                 parent.style.opacity = 0
                                 document.title = data.post.name + ' | RandomCTF'
-                                window.history.pushState({'post': data.post._id}, '', '/?post=' + data.post._id)
+                                window.history.pushState({'post': data.post._id}, '', '/post/' + data.post._id)
                                 setTimeout(function () {
                                     formatPostContainer(data.post)
                                     parent.style.opacity = 1
                                 }, 500)
                             } else if (parent.style.opacity != 0) {
-                                console.log('parent.style.opacity != 0')
                                 parent.style.opacity = 0
                                 document.title = 'RandomCTF | Ethical hacking, Programming, and Tutorials'
                                 window.history.pushState({}, '', '/')
@@ -90,10 +88,9 @@
                                     formatPostContainer(data.post)
                                 }, 500)
                             } else {
-                                console.log('else')
                                 parent.style.opacity = 1
                                 document.title = data.post.name + ' | RandomCTF'
-                                window.history.pushState({'post': data.post._id}, '', '/?post=' + data.post._id)
+                                window.history.pushState({'post': data.post._id}, '', '/post/' + data.post._id)
                                 formatPostContainer(data.post)
                             }
 
@@ -128,16 +125,18 @@
 
                         // For Post URL
                         let postlink = document.createElement('a')
+                        postlink.classList.add('post-container-link')
                         postlink.innerText = post.name
                         postspan.appendChild(postlink)
                         postspan.appendChild(document.createElement('br'))
 
                         // For Post Content
                         let postcontent = document.createElement('p')
+                        postcontent.classList.add('post-container-description')
                         postcontent.innerText = post.content
                         postspan.appendChild(postcontent)
 
-                        // Append the div
+                        // Append the container
                         postacontainer.appendChild(postspan)
                         postparent.appendChild(postacontainer)
 
@@ -168,9 +167,8 @@
 
             window.onload = function () {
                 loadPosts()
-                let searchparams = new URLSearchParams(document.location.search.substring(1))
-                let initialpostid= searchparams.get("post")
-                if (initialpostid) {
+                if (window.location.pathname.match(/(?<=\/post\/)\w{16}/)[0]) {
+                    let initialpostid = window.location.pathname.match(/(?<=\/post\/)\w{16}/)[0]
                     loadPostContent('/posts/load/' + initialpostid)
                 }
                 setSlide(0)

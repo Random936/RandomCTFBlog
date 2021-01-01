@@ -156,13 +156,13 @@ body {
     background-color: rgba(71, 68, 68, 0.8);
 }
 
-.post-container a {
+.post-container-link {
     color: white;
     text-decoration: none;
     font-size: x-large;
 }
 
-.post-container p {
+.post-container-description {
     color: white;
     font-size: large;
     text-align: left;

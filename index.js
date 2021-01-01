@@ -282,8 +282,8 @@ app.get('/website/stats', AdminAuth, (req, res) => {
 
                 if (record.firstvisit > (Date.now() - 604800000)) {
                     let day
-                    for (day = 0; Date.now() - (86400000 * day) > record.firstvisit; day++)
-                    statistics.newvisits[day]++
+                    for (day = 0; record.firstvisit < Date.now() - (86400000 * day); day++) {}
+                    statistics.newvisits[day - 1]++
                 }
     
                 if (record.lastvisit > Date.now() - 604800000) {

@@ -167,7 +167,7 @@
 
             window.onload = function () {
                 loadPosts()
-                if (window.location.pathname.match(/(?<=\/post\/)\w{16}/)[0]) {
+                if (window.location.pathname.match(/(?<=\/post\/)\w{16}/)) {
                     let initialpostid = window.location.pathname.match(/(?<=\/post\/)\w{16}/)[0]
                     loadPostContent('/posts/load/' + initialpostid)
                 }

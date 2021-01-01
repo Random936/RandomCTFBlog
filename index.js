@@ -11,7 +11,7 @@ const uuid = require('uuid')
 
 // Change before production!
 const websitedomain = 'randomctf.com'
-const portnumber = 80
+const portnumber = 3000
 const jwtsecret = uuid.v4()
 const saltRounds = 10
 
@@ -43,7 +43,7 @@ app.set('trust proxy', true)
 
 app.get('/', (req, res) => {
     console.log(req.headers['user-agent'])
-    if (/.*(bot|google|twitter|facebook).*/.test(req.headers['user-agent'])) {
+    if (/.*([Bb]ot|[Cc]rawler|[Gg]oogle|[Tt]witter|[Ff]acebook).*/.test(req.headers['user-agent'])) {
         db.posts.find({type: { $ne: 'private'} }, (err, posts) => {
             if (err || !posts) {
                 return res.end('An error occured.')
@@ -75,7 +75,7 @@ app.get('/', (req, res) => {
 
 app.get('/post/:id', (req, res) => {
    
-    if (/.*(bot|google|twitter|facebook).*/.test(req.headers['user-agent'])) {
+    if (/.*([Bb]ot|[Cc]rawler|[Gg]oogle|[Tt]witter|[Ff]acebook).*/.test(req.headers['user-agent'])) {
 
         if (typeof req.params.id !== 'string') {
             return res.redirect('/')

@@ -227,6 +227,8 @@ body {
     background-image: url('defaultbackground.jpg');
     background-size: cover;
     background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center;
 }
 
 .admin-container {

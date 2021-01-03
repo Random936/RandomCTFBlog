@@ -43,7 +43,7 @@ app.set('trust proxy', true)
 
 app.get('/', (req, res) => {
     console.log(req.headers['user-agent'])
-    if (/.*([Bb]ot|[Cc]rawler|[Gg]oogle|[Tt]witter|[Ff]acebook).*/.test(req.headers['user-agent'])) {
+    if (/.*([Bb]ot|[Cc]rawler|[Ll]ighthouse).*/.test(req.headers['user-agent'])) {
         db.posts.find({type: { $ne: 'private'} }, (err, posts) => {
             if (err || !posts) {
                 return res.end('An error occured.')
@@ -61,6 +61,7 @@ app.get('/', (req, res) => {
                 let aboutpost = posts.find(post => post.type === 'about')
 
                 res.render('nojsindex.ejs', {
+                    title: 'RandomCTF | Ethical hacking, Programming, and Tutorials',
                     posts: posts,
                     contactid: contactpost._id,
                     aboutid: aboutpost._id,
@@ -75,7 +76,7 @@ app.get('/', (req, res) => {
 
 app.get('/post/:id', (req, res) => {
    
-    if (/.*([Bb]ot|[Cc]rawler|[Gg]oogle|[Tt]witter|[Ff]acebook).*/.test(req.headers['user-agent'])) {
+    if (/.*([Bb]ot|[Cc]rawler|[Ll]ighthouse).*/.test(req.headers['user-agent'])) {
 
         if (typeof req.params.id !== 'string') {
             return res.redirect('/')
@@ -100,6 +101,7 @@ app.get('/post/:id', (req, res) => {
 
             if (currentpost) {
                 return res.render('nojsindex.ejs', {
+                    title: currentpost.name,
                     posts: posts,
                     currentpost: currentpost,
                     contactid: contactpost._id,

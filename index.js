@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken')
 const Datastore = require('nedb')
 const bcrypt = require('bcrypt')
 const uuid = require('uuid')
+const { timeStamp } = require('console')
 
 // Change before production!
 const websitedomain = 'randomctf.com'
@@ -41,8 +42,7 @@ app.set('trust proxy', true)
 --------------------------------------------------
 */
 
-app.get('/', (req, res) => {
-    console.log(req.headers['user-agent'])
+app.get('/', logStartTime, (req, res) => {
     if (/.*([Bb]ot|[Cc]rawler|[Ll]ighthouse).*/.test(req.headers['user-agent'])) {
         db.posts.find({type: { $ne: 'private'} }, (err, posts) => {
             if (err || !posts) {
@@ -74,7 +74,7 @@ app.get('/', (req, res) => {
     }
 })
 
-app.get('/post/:id', (req, res) => {
+app.get('/post/:id', logStartTime, (req, res) => {
    
     if (/.*([Bb]ot|[Cc]rawler|[Ll]ighthouse).*/.test(req.headers['user-agent'])) {
 
@@ -118,7 +118,7 @@ app.get('/post/:id', (req, res) => {
 
 })
 
-app.get('/admin', AdminAuth, (req, res) => {
+app.get('/admin', logStartTime,  AdminAuth, (req, res) => {
     res.sendFile(__dirname + '/views/admin.html')
 })
 
@@ -133,7 +133,7 @@ function trackUsers(req, res, next) {
     if (typeof req.url !== "string" || typeof req.headers['user-agent'] !== "string" || typeof req.ip !== "string") {
         return next()
     } else if (!req.cookies.logging_token || !uuid.validate(req.cookies.logging_token)) {
-        
+
         let logging_token = uuid.v4()
         let newrecord = {
             token: logging_token,
@@ -142,14 +142,14 @@ function trackUsers(req, res, next) {
             lastvisit: Date.now(),
             ip: req.ip,
             useragent: req.headers['user-agent'],
-            paths: [req.url]
+            paths: [req.url],
+            timestamps: []
         }
 
+        newrecord.referer = ''
         if (typeof req.headers.referer === 'string' && !req.headers.referer.includes(websitedomain)) {
             newrecord.referer = req.headers.referer
-        } else {
-            newrecord.referer = ''
-        }
+        }  
 
         db.tracking.insert(newrecord, (err) => {
             if (err) {return next()}
@@ -172,7 +172,7 @@ function trackUsers(req, res, next) {
             
             db.tracking.update(
                 { token: req.cookies.logging_token },
-                { $push: { paths: req.url }, $set: { lastvisit: Date.now(), user: true }},
+                { $push: { paths: req.url }, $set: { lastvisit: Date.now(), user: true } },
                 (err) => {
                 if (err) {
                     return next()
@@ -186,7 +186,7 @@ function trackUsers(req, res, next) {
 
             db.tracking.update(
                 { token: req.cookies.logging_token },
-                { $set: { lastvisit: Date.now() }},
+                { $set: { lastvisit: Date.now() } },
                 (err) => {
                 if (err) {
                     return next()
@@ -200,6 +200,57 @@ function trackUsers(req, res, next) {
     })
 
 }
+
+function logStartTime(req, res, next) {
+
+    if (typeof req.cookies.logging_token !== "string" || typeof req.url !== "string") {
+        return next()
+    }
+
+    db.tracking.update({ token: req.cookies.logging_token }, { $push: {
+        timestamps: {
+            path: req.url,
+            timespent: 0,
+            starttime: Date.now(),
+            endtime: Date.now()
+        } 
+    }}, () => {
+        return next()
+    })
+}
+
+app.get('/website/logendtime', (req, res) => {
+    
+    if (typeof req.cookies.logging_token !== "string" || typeof req.query.path !== "string") {
+        return res.end(JSON.stringify({status: "failed"}))
+    }
+
+    db.tracking.findOne({ token: req.cookies.logging_token }, (err, record) => {
+        if (err || !record) {return res.end(JSON.stringify({status: "failed"}))}
+
+        console.log(req.query.path)
+        let timestampindex = record.timestamps.findIndex(
+            timestamp => timestamp.path === req.query.path && timestamp.timespent < 1000
+        )
+
+        if (timestampindex !== -1) {
+            record.timestamps[timestampindex].endtime = Date.now()
+            record.timestamps[timestampindex].timespent = record.timestamps[timestampindex].endtime - record.timestamps[timestampindex].starttime
+        }
+
+        console.log(record.timestamps)
+
+        db.tracking.update({ token: req.cookies.logging_token }, record, (err) => {
+            if (err) {
+                return res.end(JSON.stringify({status: "failed"}))
+            } else {
+                return res.end(JSON.stringify({status: "success"}))
+            }
+        })
+
+    })
+
+})
 
 app.get('/website/load/:selector', AdminAuth, (req, res) => {
 
@@ -322,7 +373,7 @@ app.get('/website/stats', AdminAuth, (req, res) => {
 --------------------------------------------------
 */
 
-app.get('/login', (req, res) => {
+app.get('/login', logStartTime, (req, res) => {
     res.render('login.ejs', { loginmessage: "" })
 })
 
@@ -707,7 +758,7 @@ app.get('/posts/delete/:id', AdminAuth, (req, res) => {
 --------------------------------------------------
 */
 
-app.get('/posts/about', (req, res) => {
+app.get('/posts/about', logStartTime, (req, res) => {
 
     db.posts.findOne({ type: "about" }, (err, post) => {
         if (err || !post) {return res.end(JSON.stringify({ status: "failed" }))}
@@ -721,7 +772,7 @@ app.get('/posts/about', (req, res) => {
 
 })
 
-app.get('/posts/contact', (req, res) => {
+app.get('/posts/contact', logStartTime, (req, res) => {
 
     db.posts.findOne({ type: "contact" }, (err, post) => {
         if (err || !post) {return res.end(JSON.stringify({ status: "failed" }))}
@@ -735,7 +786,7 @@ app.get('/posts/contact', (req, res) => {
 
 })
 
-app.get('/posts/load/:id', (req, res) => {
+app.get('/posts/load/:id', logStartTime, (req, res) => {
     
     if (typeof req.params.id !== "string") {
         console.log("WARNING: NoSQL injection attempt detected! " + req.socket.address)

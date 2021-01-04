@@ -647,6 +647,10 @@
                 Chart.defaults.global.defaultFontColor = "#FFFFFF"
                 loadStatistics()
             }
+
+            window.onbeforeunload = function (event) {
+                fetch('/website/logendtime?path=' + window.location.pathname)
+            }
                         
         </script>
 

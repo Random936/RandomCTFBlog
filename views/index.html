@@ -73,25 +73,46 @@
                             let parent = document.getElementById('fullPostContainer')
 
                             if (parent.firstChild.innerText != data.post.name) {
+
                                 parent.style.opacity = 0
                                 document.title = data.post.name + ' | RandomCTF'
-                                window.history.pushState({'post': data.post._id}, '', '/post/' + data.post._id)
+                                let finalpath = window.location.pathname.replace('/post/', '/posts/load/')
+
+                                fetch('/website/logendtime?path=' + finalpath).then(() => {
+                                    window.history.pushState({'post': data.post._id}, '', '/post/' + data.post._id)
+                                })
+                                
                                 setTimeout(function () {
                                     formatPostContainer(data.post)
                                     parent.style.opacity = 1
                                 }, 500)
+
                             } else if (parent.style.opacity != 0) {
+
                                 parent.style.opacity = 0
                                 document.title = 'RandomCTF | Ethical hacking, Programming, and Tutorials'
-                                window.history.pushState({}, '', '/')
+                                let finalpath = window.location.pathname.replace('/post/', '/posts/load/')
+
+                                fetch('/website/logendtime?path=' + finalpath).then(() => {
+                                    window.history.pushState({}, '', '/')
+                                })
+
                                 setTimeout(function () {
                                     formatPostContainer(data.post)
                                 }, 500)
+
                             } else {
+
                                 parent.style.opacity = 1
                                 document.title = data.post.name + ' | RandomCTF'
-                                window.history.pushState({'post': data.post._id}, '', '/post/' + data.post._id)
-                                formatPostContainer(data.post)
+                                let finalpath = window.location.pathname.replace('/post/', '/posts/load/')
+
+                                fetch('/website/logendtime?path=' + finalpath).then(() => {
+                                    window.history.pushState({'post': data.post._id}, '', '/post/' + data.post._id)
+                                }) 
+
+                                formatPostContainer(data.post) 
+
                             }
 
                         }
@@ -173,6 +194,11 @@
                 }
                 setSlide(0)
             }
+
+            window.onbeforeunload = function (event) {
+                fetch('/website/logendtime?path=' + window.location.pathname)
+            }
+
         </script> 
     </body>
 </html>

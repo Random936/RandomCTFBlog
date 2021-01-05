@@ -65,13 +65,51 @@
 
             function loadPostContent(posturl) {
 
+                let parent = document.getElementById('fullPostContainer')
+
+                if (parent.style.opacity == 0) {
+
+                    fetch(posturl)
+                        .then(res => res.json())
+                        .then((data) => {
+                            if (data.status === 'success') {
+                                parent.style.opacity = 1
+                                document.title = data.post.name + ' | RandomCTF'
+                                let finalpath = window.location.pathname.replace('/post/', '/posts/load/')
+
+                                fetch('/website/logendtime?path=' + finalpath).then(() => {
+                                    window.history.pushState({'post': data.post._id}, '', '/post/' + data.post._id)
+                                }) 
+
+                                formatPostContainer(data.post) 
+                            }
+                        })
+
+                } else {
+                    fetch(posturl)
+                        .then(res => res.json())
+                        .then((data) => {
+                            if (data.status === 'success') {
+                                parent.style.opacity = 0
+                                document.title = 'RandomCTF | Ethical hacking, Programming, and Tutorials'
+                                let finalpath = window.location.pathname.replace('/post/', '/posts/load/')
+
+                                fetch('/website/logendtime?path=' + finalpath).then(() => {
+                                    window.history.pushState({}, '', '/')
+                                })
+
+                                setTimeout(function () {
+                                    formatPostContainer(data.post)
+                                }, 500)
+                            }
+                        })
+                }
+
                 fetch(posturl)
                     .then(res => res.json())
                     .then((data) => {
-                        if (data.status == 'success') {
+                        if (data.status === 'success') {
                             
-                            let parent = document.getElementById('fullPostContainer')
-
                             if (parent.firstChild.innerText != data.post.name) {
 
                                 parent.style.opacity = 0
@@ -89,29 +127,7 @@
 
                             } else if (parent.style.opacity != 0) {
 
-                                parent.style.opacity = 0
-                                document.title = 'RandomCTF | Ethical hacking, Programming, and Tutorials'
-                                let finalpath = window.location.pathname.replace('/post/', '/posts/load/')
-
-                                fetch('/website/logendtime?path=' + finalpath).then(() => {
-                                    window.history.pushState({}, '', '/')
-                                })
-
-                                setTimeout(function () {
-                                    formatPostContainer(data.post)
-                                }, 500)
-
-                            } else {
-
-                                parent.style.opacity = 1
-                                document.title = data.post.name + ' | RandomCTF'
-                                let finalpath = window.location.pathname.replace('/post/', '/posts/load/')
-
-                                fetch('/website/logendtime?path=' + finalpath).then(() => {
-                                    window.history.pushState({'post': data.post._id}, '', '/post/' + data.post._id)
-                                }) 
-
-                                formatPostContainer(data.post) 
+                                
 
                             }
 

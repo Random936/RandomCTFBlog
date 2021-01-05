@@ -206,7 +206,7 @@ function logStartTime(req, res, next) {
     if (typeof req.cookies.logging_token !== "string" || typeof req.url !== "string") {
         return next()
     }
-
+    
     db.tracking.update({ token: req.cookies.logging_token }, { $push: {
         timestamps: {
             path: req.url,
@@ -248,6 +248,58 @@ app.get('/website/logendtime', (req, res) => {
             }
         })
 
+    })
+
+})
+
+app.get('/website/stats', AdminAuth, (req, res) => {
+
+    let statistics = {}
+    db.tracking.find({}, (err, records) => {
+        if (err || !records) {return res.end(JSON.stringify({status: "failed"}))}
+        
+        statistics.totalviews = records.length
+        statistics.userviews = 0
+        statistics.activeusers = 0
+        statistics.newvisits = [0, 0, 0, 0, 0, 0, 0]
+        statistics.posts = []
+        statistics.postviews = []
+
+        records.forEach((record) => {
+
+            if (record.user) {
+                statistics.userviews++
+
+                if (record.firstvisit > (Date.now() - 604800000)) {
+                    let day
+                    for (day = 0; record.firstvisit < Date.now() - (86400000 * day); day++) {}
+                    statistics.newvisits[day - 1]++
+                }
+    
+                if (record.lastvisit > Date.now() - 604800000) {
+                    statistics.activeusers++
+                }
+    
+                record.paths.forEach((path) => {
+                    if (!statistics.posts.includes(path) && path.match(/\/posts\/(load\/.+|contact|about)/)) {
+                        statistics.posts.push(path)
+                        statistics.postviews.push(1)
+                    } else {
+                        let pathindex = statistics.posts.findIndex(pathinarr => pathinarr === path)
+                        statistics.postviews[pathindex]++
+                    }
+                })
+            
+            }
+
+        })
+
+        statistics.newvisits.reverse()
+
+        res.end(JSON.stringify({
+            status: "success",
+            statistics: statistics
+        }))
     })
 
 })
@@ -311,58 +363,6 @@ app.get('/website/delete/:token', AdminAuth, (req, res) => {
             return res.end(JSON.stringify({status: "success"}))
         }
 
-    })
-
-})
-
-app.get('/website/stats', AdminAuth, (req, res) => {
-
-    let statistics = {}
-    db.tracking.find({}, (err, records) => {
-        if (err || !records) {return res.end(JSON.stringify({status: "failed"}))}
-        
-        statistics.totalviews = records.length
-        statistics.userviews = 0
-        statistics.activeusers = 0
-        statistics.newvisits = [0, 0, 0, 0, 0, 0, 0]
-        statistics.posts = []
-        statistics.postviews = []
-
-        records.forEach((record) => {
-
-            if (record.user) {
-                statistics.userviews++
-
-                if (record.firstvisit > (Date.now() - 604800000)) {
-                    let day
-                    for (day = 0; record.firstvisit < Date.now() - (86400000 * day); day++) {}
-                    statistics.newvisits[day - 1]++
-                }
-    
-                if (record.lastvisit > Date.now() - 604800000) {
-                    statistics.activeusers++
-                }
-    
-                record.paths.forEach((path) => {
-                    if (!statistics.posts.includes(path) && path.match(/\/posts\/(load\/.+|contact|about)/)) {
-                        statistics.posts.push(path)
-                        statistics.postviews.push(1)
-                    } else {
-                        let pathindex = statistics.posts.findIndex(pathinarr => pathinarr === path)
-                        statistics.postviews[pathindex]++
-                    }
-                })
-            
-            }
-
-        })
-
-        statistics.newvisits.reverse()
-
-        res.end(JSON.stringify({
-            status: "success",
-            statistics: statistics
-        }))
     })
 
 })

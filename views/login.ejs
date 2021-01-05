@@ -15,5 +15,10 @@
             <p style="color: white;"><%= loginmessage %></p>
             <a class="login-link" href="/">Home Page</a>
         </div>
+        <script>
+            window.onbeforeunload = function (event) {
+                fetch('/website/logendtime?path=' + window.location.pathname)
+            }
+        </script>
     </body>
 </html>
